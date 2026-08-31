@@ -1,0 +1,51 @@
+#!/bin/sh /etc/rc.common
+
+START=65
+STOP=85
+ports="8080 443 21"
+ipaddr=$(uci_get network.lan.ipaddr)
+
+start() {
+    #/etc/init.d/firewall stop >/dev/null 2>&1
+    #/sbin/sysctl -w net.ipv4.tcp_congestion_control=wtcp
+
+    iptables -t mangle -N CSTK >/dev/null 2>&1
+    iptables -t mangle -F CSTK >/dev/null 2>&1
+    #iptables -t mangle -A CSTK -p tcp -s 192.168.0.0/32 -d 192.168.0.0/32  -j RETURN
+
+    # For established connections, these rules optimize the packet journey
+    # through iptables so that they will not go through TPROXY taget again
+    iptables -t mangle -A PREROUTING -p tcp -m socket -j CSTK
+    iptables -t mangle -A CSTK -j MARK --set-mark 0x2
+    iptables -t mangle -A CSTK -j ACCEPT
+
+    ip rule add fwmark 0x2 lookup 100
+    ip route add local 0.0.0.0/0 dev lo table 100
+
+    # for non local port 80 traffic, redirect to 8080
+    iptables -t mangle -A PREROUTING ! -d $ipaddr -p tcp --dport 80 -j TPROXY --tproxy-mark 0x2/0x2 --on-port 8080
+
+    for port in $ports
+    do
+        iptables -t mangle -A PREROUTING -p tcp --dport $port -j TPROXY --tproxy-mark 0x2/0x2 --on-port $port
+    done
+
+    [ -f /etc/sysctl.conf ] && sysctl -p -e >&-
+
+    taskset 0x1 cstk --fg 8080 21 >/dev/null 2>&1 &
+    taskset 0x2 cstk --fg 443 >/dev/null 2>&1 &
+}
+
+stop() {
+    iptables -t mangle -D PREROUTING -p tcp -m socket -j CSTK
+    iptables -t mangle -F CSTK >/dev/null 2>&1
+    iptables -t mangle -X CSTK >/dev/null 2>&1
+    iptables -t mangle -D PREROUTING ! -d $ipaddr -p tcp --dport 80 -j TPROXY --tproxy-mark 0x2/0x2 --on-port 8080
+
+    for port in $ports
+    do
+        iptables -t mangle -D PREROUTING -p tcp --dport $port -j TPROXY --tproxy-mark 0x2/0x2 --on-port $port
+    done
+
+    killall cstk
+}

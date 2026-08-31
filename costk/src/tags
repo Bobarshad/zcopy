@@ -1,0 +1,414 @@
+ArgList	args.h	40
+Args	args.h	42
+Args::Args	args.cpp	/^Args::Args(int argc, char **argv) {$/
+Args::_argc	args.h	45
+Args::_args	args.h	44
+Args::_argv	args.h	46
+Args::begin	args.cpp	/^Args::begin() {$/
+Args::end	args.cpp	/^Args::end() {$/
+Args::get	args.cpp	/^Args::get(const char *flag, const char *def) $/
+Args::get	args.cpp	/^Args::get(const char *flag, const int def)$/
+Args::get	args.cpp	/^Args::get(const char *flag, const bool def)$/
+Args::parse	args.cpp	/^Args::parse(void) $/
+Args::put	args.cpp	/^Args::put(char *flag, char *val)$/
+Args::usage	args.cpp	/^Args::usage(int exitcode, char *name)$/
+Args::~Args	args.cpp	/^Args::~Args() {$/
+ArgsMap	args.h	39
+Buffer	buffer.h	10
+Buffer::Buffer	buffer.cpp	/^Buffer::Buffer(BufferPool *p) {$/
+Buffer::data	buffer.h	14
+Buffer::getPool	buffer.cpp	/^Buffer::getPool() {$/
+Buffer::length	buffer.h	12
+Buffer::offset	buffer.h	13
+Buffer::pool	buffer.h	15
+Buffer::returnToPool	buffer.cpp	/^Buffer::returnToPool() {$/
+Buffer::~Buffer	buffer.cpp	/^Buffer::~Buffer() {$/
+BufferPool	bfpool.h	11
+BufferPool::BufferPool	bfpool.cpp	/^BufferPool::BufferPool (int min, int max, int port/
+BufferPool::bufferPoolReapInterval	bfpool.h	15
+BufferPool::get	bfpool.h	17
+BufferPool::getBuffer	bfpool.cpp	/^BufferPool::getBuffer() {$/
+BufferPool::maxSize	bfpool.h	14
+BufferPool::minSize	bfpool.h	13
+BufferPool::pool	bfpool.h	16
+BufferPool::poolBuffer	bfpool.cpp	/^BufferPool::poolBuffer(Buffer *item) {$/
+BufferPool::run	bfpool.cpp	/^BufferPool::run() {$/
+BufferPool::trim	bfpool.cpp	/^BufferPool::trim(int len) {$/
+BufferPool::~BufferPool	bfpool.cpp	/^BufferPool::~BufferPool() {$/
+CList	clist.h	8
+CList::CList	clist.h	/^   CList()               {mLength=0;}$/
+CList::CList	clist.h	/^   CList(const T& item)  {mLength=0; push_back(ite/
+CList::clear	clist.h	/^   inline void clear()                   {P(); mDa/
+CList::front	clist.h	/^   inline T    front()                   {T tmp; P/
+CList::isEmpty	clist.h	/^   inline bool isEmpty() {return (mLength == 0);}$/
+CList::length	clist.h	/^   inline int  length()  {return mLength;}$/
+CList::mData	clist.h	10
+CList::mLength	clist.h	11
+CList::mNotEmpty	clist.h	12
+CList::pop_front	clist.h	/^   inline void pop_front()               {P(); if /
+CList::push_back	clist.h	/^   inline void push_back(const T& data)  {P(); mDa/
+CList::push_front	clist.h	/^   inline void push_front(const T& data) {P(); mDa/
+CList::remove	clist.h	/^   inline void remove(const T& data)     {P(); mDa/
+CList::waitFor	clist.h	/^   inline void waitFor()                 {mNotEmpt/
+CList::~CList	clist.h	/^   virtual ~CList()      {}$/
+CatchSignals	cstk.cpp	/^CatchSignals(int sig) $/
+CatchTerm	cstk.cpp	/^CatchTerm(int sig) $/
+CatchUser1	cstk.cpp	/^CatchUser1(int sig) $/
+Condition	condition.h	30
+Condition::Condition	condition.h	/^   Condition() {$/
+Condition::fired	condition.h	33
+Condition::mp_cond	condition.h	32
+Condition::raise	condition.h	/^   inline void raise() {$/
+Condition::reset	condition.h	/^   inline void reset() {$/
+Condition::waitFor	condition.h	/^   inline int waitFor(u_int64_t nsec_timeout=0) {$/
+Condition::~Condition	condition.h	/^   ~Condition() {$/
+DEFAULT_BFPOOL_MAX_SIZE	bfpool.h	9
+DEFAULT_BFPOOL_MIN_SIZE	bfpool.h	8
+DEFAULT_BFPOOL_REAP_INTERVAL	bfpool.h	7
+DEFAULT_PPOOL_MAX_SIZE	proxypool.h	12
+DEFAULT_PPOOL_MIN_SIZE	proxypool.h	11
+DEFAULT_PPOOL_REAP_INTERVAL	proxypool.h	10
+DEFAULT_TNAME	runnable.h	40
+DEFINE_EXTERNALS	cstk.cpp	23
+EOS	netutil.cpp	/^#define EOS(S) ((S) == NULL || *(S) == '\\0')$/
+EPOLL_ACTIVE_TIMEOUT	cstk.h	39
+EPOLL_BASE	cstk.h	33
+EPOLL_FD_COUNT	cstk.h	35
+EPOLL_INACTIVE_MULTIPLE	cstk.h	40
+EPOLL_NONE	cstk.h	34
+EPOLL_QUEUE_LEN	cstk.h	36
+EPOLL_TIMEOUT	cstk.h	37
+FALSE	cstk.h	31
+IP_TRANSPARENT	cstk.h	19
+LG_ALERT	log.h	/^#define LG_ALERT(L,f, ...)   (L)->alert(f, ## __VA/
+LG_CRIT	log.h	/^#define LG_CRIT(L,f, ...)    (L)->critical(f, ## _/
+LG_DEBUG	log.h	/^#   define LG_DEBUG(L,f, ...)   (L)->debug(f, ## _/
+LG_DEBUG	log.h	/^#   define LG_DEBUG(L,f, ...)$/
+LG_ERROR	log.h	/^#define LG_ERROR(L,f, ...)   (L)->error(f, ## __VA/
+LG_FATAL	log.h	/^#define LG_FATAL(L,f, ...)   (L)->fatal(f, ## __VA/
+LG_INFO	log.h	/^#define LG_INFO(L,f, ...)    (L)->info(f, ## __VA_/
+LG_NOTICE	log.h	/^#define LG_NOTICE(L,f, ...)  (L)->notice(f, ## __V/
+LG_WARNING	log.h	/^#define LG_WARNING(L,f, ...) (L)->warn(f, ## __VA_/
+LOG_YIELD_COUNT	log.h	59
+L_ALERT	log.h	42
+L_CRIT	log.h	41
+L_DEBUG	log.h	36
+L_DEFAULT	log.h	44
+L_ERROR	log.h	40
+L_FACILITY_DAEMON	log.h	54
+L_FACILITY_DEFAULT	log.h	57
+L_FACILITY_LOCAL0	log.h	46
+L_FACILITY_LOCAL1	log.h	47
+L_FACILITY_LOCAL2	log.h	48
+L_FACILITY_LOCAL3	log.h	49
+L_FACILITY_LOCAL4	log.h	50
+L_FACILITY_LOCAL5	log.h	51
+L_FACILITY_LOCAL6	log.h	52
+L_FACILITY_LOCAL7	log.h	53
+L_FACILITY_NONE	log.h	56
+L_FACILITY_STDERR	log.h	55
+L_FATAL	log.h	43
+L_INFO	log.h	37
+L_NOTICE	log.h	38
+L_WARN	log.h	39
+Log	log.h	75
+Log::Log	log.cpp	/^Log::Log(char *tag, int level, const char *facilit/
+Log::alert	log.cpp	/^Log::alert(const char *fmt, ...) {$/
+Log::critical	log.cpp	/^Log::critical(const char *fmt, ...) {$/
+Log::debug	log.cpp	/^Log::debug(const char *fmt, ...) {$/
+Log::error	log.cpp	/^Log::error(const char *fmt, ...) {$/
+Log::fatal	log.cpp	/^Log::fatal(const char *fmt, ...) {$/
+Log::flush	log.cpp	/^Log::flush(bool yield) {$/
+Log::info	log.cpp	/^Log::info(const char *fmt, ...) {$/
+Log::log	log.cpp	/^Log::log(int level, bool debug, const char *fmt, v/
+Log::mFacility	log.h	80
+Log::mLevel	log.h	79
+Log::mLogTag	log.h	78
+Log::mQueue	log.h	77
+Log::mShowDebug	log.h	81
+Log::notice	log.cpp	/^Log::notice(const char *fmt, ...) {$/
+Log::run	log.cpp	/^Log::run() {$/
+Log::setFacility	log.cpp	/^Log::setFacility(const char *facility) {$/
+Log::warn	log.cpp	/^Log::warn(const char *fmt, ...) {$/
+Log::~Log	log.cpp	/^Log::~Log() {$/
+LogEntry	logentry.h	28
+LogEntry	logentry.h	/^   LogEntry(int level, bool debug, char *msg);$/
+LogEntry::LogEntry	logentry.cpp	/^LogEntry::LogEntry(int level, bool debug, char *ms/
+LogEntry::getLevel	logentry.cpp	/^LogEntry::getLevel() {$/
+LogEntry::getMsg	logentry.cpp	/^LogEntry::getMsg() {$/
+LogEntry::isDebug	logentry.cpp	/^LogEntry::isDebug() {$/
+LogEntry::~LogEntry	logentry.cpp	/^LogEntry::~LogEntry() {$/
+Manager	manager.h	6
+Manager::Manager	manager.cpp	/^Manager::Manager(int port, ProxyPool *pool) {$/
+Manager::adjActive	manager.cpp	/^Manager::adjActive(int amt) {$/
+Manager::adjCompleted	manager.cpp	/^Manager::adjCompleted(int amt) {$/
+Manager::adjInactive	manager.cpp	/^Manager::adjInactive(int amt) {$/
+Manager::getPort	manager.h	/^   int getPort()   {return lport;}$/
+Manager::getSocket	manager.h	/^   int getSocket() {return lsock;}$/
+Manager::getTotals	manager.cpp	/^Manager::getTotals(char *buf, int len) {$/
+Manager::init	manager.cpp	/^Manager::init(int port) {$/
+Manager::lport	manager.h	9
+Manager::lsock	manager.h	8
+Manager::mActive	manager.h	17
+Manager::mBufferPool	manager.h	12
+Manager::mCompleted	manager.h	16
+Manager::mHeartbeatIP	manager.h	13
+Manager::mInactive	manager.h	18
+Manager::mProxyPool	manager.h	11
+Manager::mWhen	manager.h	19
+Manager::run	manager.cpp	/^Manager::run() {$/
+Manager::tallys	manager.h	15
+Manager::terminate	manager.h	10
+Manager::~Manager	manager.cpp	/^Manager::~Manager() {$/
+Mcstk.cpp	cstk.cpp	/^main(int pArgc, char *pArgv[])$/
+NET_INV_LPORT	cstk.h	4
+NET_NO_BIND	cstk.h	8
+NET_NO_CONGESTION	cstk.h	14
+NET_NO_CONNECT	cstk.h	13
+NET_NO_EPFD	cstk.h	5
+NET_NO_LISTEN	cstk.h	9
+NET_NO_MARK	cstk.h	16
+NET_NO_NOBLOCK	cstk.h	12
+NET_NO_REUSEADDR	cstk.h	11
+NET_NO_SETADD	cstk.h	6
+NET_NO_SOCKET	cstk.h	7
+NET_NO_SOCKETBIND	cstk.h	15
+NET_NO_TRANSPARENT	cstk.h	10
+NSEC_IN_ONESEC	condition.h	28
+PACKET_LEN	buffer.h	6
+PROXY_DATA_INPUTHOLD	proxy2.h	12
+PROXY_DATA_OUTPUTHOLD	proxy2.h	13
+PROXY_DATA_SIBLINGCLOSED	proxy2.h	14
+PROXY_STATE_ACTIVE	proxy2.h	6
+PROXY_STATE_CLOSED	proxy2.h	10
+PROXY_STATE_CLOSING	proxy2.h	9
+PROXY_STATE_IDLE	proxy2.h	8
+PROXY_STATE_INACTIVE	proxy2.h	7
+PR_SET_NAME_LEN	runnable.h	39
+Proxy	proxy.h	9
+Proxy2	proxy2.h	16
+Proxy2	proxy2.h	/^   Proxy2(int fd_src, int fd_dst, int fd_notify);$/
+Proxy2::Proxy2	proxy2.cpp	/^Proxy2::Proxy2(in fd_src, int fd_dst, int fd_notif/
+Proxy::Proxy	proxy.cpp	/^Proxy::Proxy (ProxyPool *ppool) {$/
+Proxy::active	proxy.h	14
+Proxy::address	proxy.h	33
+Proxy::bpool	proxy.h	42
+Proxy::clear_recent_ftp	proxy.cpp	/^Proxy::clear_recent_ftp(struct in_addr *addr) {$/
+Proxy::closed	proxy.h	16
+Proxy::epfd	proxy.h	12
+Proxy::epollTimeout	proxy.h	17
+Proxy::getManager	proxy.h	/^   Manager *getManager()       {return mgr;}$/
+Proxy::goActive	proxy.cpp	/^Proxy::goActive() {$/
+Proxy::goInactive	proxy.cpp	/^Proxy::goInactive() {$/
+Proxy::handleHangup	proxy.cpp	/^Proxy::handleHangup(int fd) {$/
+Proxy::handleInput	proxy.cpp	/^Proxy::handleInput(int fd) {$/
+Proxy::handleOutput	proxy.cpp	/^Proxy::handleOutput(int fd) {$/
+Proxy::inactive	proxy.h	15
+Proxy::init	proxy.cpp	/^Proxy::init() {$/
+Proxy::init	proxy.cpp	/^Proxy::init(BufferPool *pool, Proxy *sib, int fd, /
+Proxy::iofd	proxy.h	11
+Proxy::isActive	proxy.h	/^   int  isActive()             {return active;}$/
+Proxy::isInactive	proxy.h	/^   int  isInactive()           {return inactive;}$/
+Proxy::isInputHeld	proxy.h	/^   int  isInputHeld()          {return mInputHold;/
+Proxy::mActiveTimeout	proxy.h	30
+Proxy::mInactiveMultiple	proxy.h	31
+Proxy::mInputAvailable	proxy.h	22
+Proxy::mInputHold	proxy.h	20
+Proxy::mMaxProxyQueueLength	proxy.h	28
+Proxy::mNotifyInputRelease	proxy.h	25
+Proxy::mNotifyOutputAvailable	proxy.h	24
+Proxy::mOutputAvailable	proxy.h	23
+Proxy::mOutputHold	proxy.h	21
+Proxy::mSessionId	proxy.h	19
+Proxy::mSiblingClosed	proxy.h	26
+Proxy::mSiblingNotifyLimit	proxy.h	27
+Proxy::mTimeoutCounter	proxy.h	29
+Proxy::mgr	proxy.h	39
+Proxy::notifyClose	proxy.cpp	/^Proxy::notifyClose() {$/
+Proxy::notifyInputRelease	proxy.cpp	/^Proxy::notifyInputRelease() {$/
+Proxy::notifyOutputAvailable	proxy.cpp	/^Proxy::notifyOutputAvailable() {$/
+Proxy::pool	proxy.h	41
+Proxy::port	proxy.h	35
+Proxy::queue	proxy.h	37
+Proxy::queueOutput	proxy.cpp	/^Proxy::queueOutput(Buffer *item) {$/
+Proxy::reset	proxy.cpp	/^Proxy::reset() {$/
+Proxy::returnToPool	proxy.cpp	/^Proxy::returnToPool() {$/
+Proxy::run	proxy.cpp	/^Proxy::run() {$/
+Proxy::setActive	proxy.h	/^   void setActive(int state)   {active = state;}$/
+Proxy::setInactive	proxy.h	/^   void setInactive(int state) {inactive = state;}/
+Proxy::setManager	proxy.h	/^   Manager *setManager(Manager *m) {mgr = m;}$/
+Proxy::sibling	proxy.h	40
+Proxy::sibling_address	proxy.h	34
+Proxy::sordflag	proxy.h	13
+Proxy::terminate	proxy.cpp	/^Proxy::terminate() {$/
+Proxy::~Proxy	proxy.cpp	/^Proxy::~Proxy() {$/
+ProxyPool	proxypool.h	14
+ProxyPool::ProxyPool	proxypool.cpp	/^ProxyPool::ProxyPool(int min, int max) {$/
+ProxyPool::active	proxypool.h	21
+ProxyPool::end	proxypool.cpp	/^ProxyPool::end() {$/
+ProxyPool::get	proxypool.h	23
+ProxyPool::getProxy	proxypool.cpp	/^ProxyPool::getProxy(Manager *mgr) {$/
+ProxyPool::inactive	proxypool.h	22
+ProxyPool::maxSize	proxypool.h	16
+ProxyPool::minSize	proxypool.h	17
+ProxyPool::pool	proxypool.h	20
+ProxyPool::poolProxy	proxypool.cpp	/^ProxyPool::poolProxy(Proxy *item) {$/
+ProxyPool::proxyPoolReapInterval	proxypool.h	19
+ProxyPool::run	proxypool.cpp	/^ProxyPool::run() {$/
+ProxyPool::setActive	proxypool.cpp	/^ProxyPool::setActive(Proxy *item) {$/
+ProxyPool::setInactive	proxypool.cpp	/^ProxyPool::setInactive(Proxy *item) {$/
+ProxyPool::trim	proxypool.cpp	/^ProxyPool::trim(int len) {$/
+ProxyPool::~ProxyPool	proxypool.cpp	/^ProxyPool::~ProxyPool() {$/
+RestoreChild	cstk.cpp	/^RestoreChild(int sig) $/
+Runnable	runnable.h	62
+Runnable::Runnable	runnable.cpp	/^Runnable::Runnable(int stack_size_multiple)$/
+Runnable::Runnable	runnable.cpp	/^Runnable::Runnable(char *tname, int stack_size_mul/
+Runnable::Runnable	runnable.cpp	/^Runnable::Runnable(int priority, int stack_size_mu/
+Runnable::Runnable	runnable.cpp	/^Runnable::Runnable(char *tname, int priority, int /
+Runnable::blockSignal	runnable.cpp	/^Runnable::blockSignal(int sig) $/
+Runnable::build	runnable.cpp	/^Runnable::build(char *tname, int priority, int sta/
+Runnable::cancel	runnable.cpp	/^Runnable::cancel()$/
+Runnable::getName	runnable.cpp	/^Runnable::getName()$/
+Runnable::getPriority	runnable.cpp	/^Runnable::getPriority() const$/
+Runnable::getTID	runnable.h	/^   pid_t  getTID() {return mTid;}$/
+Runnable::getThread	runnable.h	/^   inline pthread_t getThread() const {return(mHTh/
+Runnable::initialize	runnable.cpp	/^Runnable::initialize()$/
+Runnable::isCancelled	runnable.cpp	/^Runnable::isCancelled() const$/
+Runnable::isStopped	runnable.cpp	/^Runnable::isStopped() const$/
+Runnable::isTerminated	runnable.h	/^   bool isTerminated() {return isValid() && isStop/
+Runnable::isValid	runnable.cpp	/^Runnable::isValid() const$/
+Runnable::mCancelled	runnable.h	87
+Runnable::mHThread	runnable.h	65
+Runnable::mInitialized	runnable.h	99
+Runnable::mName	runnable.h	93
+Runnable::mNameValid	runnable.h	90
+Runnable::mPPID	runnable.h	71
+Runnable::mPriority	runnable.h	74
+Runnable::mResult	runnable.h	105
+Runnable::mRunning	runnable.h	80
+Runnable::mSaveName	runnable.h	96
+Runnable::mStart	runnable.h	102
+Runnable::mStopped	runnable.h	84
+Runnable::mTid	runnable.h	68
+Runnable::mValid	runnable.h	77
+Runnable::popName	runnable.cpp	/^Runnable::popName() $/
+Runnable::pushName	runnable.cpp	/^Runnable::pushName(char *name) $/
+Runnable::raise	runnable.cpp	/^Runnable::raise(Condition& cond)$/
+Runnable::setName	runnable.cpp	/^Runnable::setName(char *name)$/
+Runnable::setPriority	runnable.cpp	/^Runnable::setPriority(int prio) const$/
+Runnable::setSignal	runnable.cpp	/^Runnable::setSignal(int action, int sig) $/
+Runnable::setThreadName	runnable.cpp	/^Runnable::setThreadName() $/
+Runnable::signal	runnable.cpp	/^Runnable::signal(int sig) const$/
+Runnable::start	runnable.cpp	/^Runnable::start()$/
+Runnable::stop	runnable.cpp	/^Runnable::stop() $/
+Runnable::threadStartup	runnable.cpp	/^Runnable::threadStartup(void *arg) $/
+Runnable::threadStartup	runnable.h	118
+Runnable::unblockSignal	runnable.cpp	/^Runnable::unblockSignal(int sig) $/
+Runnable::wait	runnable.cpp	/^Runnable::wait(int sig) $/
+Runnable::wait	runnable.cpp	/^Runnable::wait(Condition& cond, int timeout)$/
+Runnable::waitStart	runnable.cpp	/^Runnable::waitStart()$/
+Runnable::~Runnable	runnable.cpp	/^Runnable::~Runnable() $/
+RunnableException	runnable.h	46
+RunnableException::RunnableException	runnable.h	/^   RunnableException(int value=-1) {$/
+RunnableException::buf	runnable.h	47
+RunnableException::errcode	runnable.h	48
+RunnableException::reason	runnable.h	/^   virtual char* reason() throw() {$/
+SOL_TCP	cstk.h	23
+SO_MARK	cstk.h	27
+Semaphore	semaphore.h	28
+Semaphore::P	semaphore.h	/^   inline void P() {$/
+Semaphore::Semaphore	semaphore.h	/^   Semaphore() {$/
+Semaphore::V	semaphore.h	/^   inline void V() {$/
+Semaphore::getSEM	semaphore.h	/^   pthread_mutex_t *getSEM() {$/
+Semaphore::locked	semaphore.h	31
+Semaphore::mp_mutex	semaphore.h	30
+Semaphore::~Semaphore	semaphore.h	/^   ~Semaphore() {$/
+Statistics	stats.h	8
+Statistics::Statistics	stats.cpp	/^Statistics::Statistics (list<Manager *> mgrs, int /
+Statistics::mlist	stats.h	10
+Statistics::port	stats.h	11
+Statistics::run	stats.cpp	/^Statistics::run() {$/
+Statistics::~Statistics	stats.cpp	/^Statistics::~Statistics() {$/
+TRUE	cstk.h	30
+VERSION	version.h	3
+Version	version.h	4
+__ARGS_INC__	args.h	27
+__BPOOL_INC__	bfpool.h	2
+__BUFFER_INC__	buffer.h	2
+__CONDITION_INC__	condition.h	23
+__CSTK_INC__	cstk.h	2
+__EXTERN_INC__	extern.h	2
+__LOGENTRY_INC__	logentry.h	22
+__LOG_CLIST__	clist.h	2
+__LOG_INC__	log.h	22
+__MANAGER__INC__	manager.h	2
+__PPOOL_INC__	proxypool.h	2
+__PROXY2_INC__	proxy2.h	2
+__PROXY_INC__	proxy.h	2
+__RUNNABLE_INC__	runnable.h	26
+__SEMAPHORE_INC__	semaphore.h	24
+__STATS_INC__	stats.h	2
+__VERSION_INC__	version.h	2
+address	proxy2.h	23
+bind_to_interface	netutil.cpp	/^bind_to_interface(int fd, char *d) {$/
+bname	cstk.cpp	43
+cca	cstk.cpp	35
+clearInputHold	proxy2.h	/^   int          clearInputHold() {flags &= ~PROXY_/
+clearOutputHold	proxy2.h	/^   int          clearOutputHold() {flags &= ~PROXY/
+clearRecent	proxy.cpp	3
+clearSiblingClosed	proxy2.h	/^   int          clearSiblingClosed() {flags &= ~PR/
+daemon	cstk.cpp	/^daemon(bool foreground, bool debug) $/
+fdDst	proxy2.h	20
+fdEpoll	proxy2.h	20
+fdNotify	proxy2.h	20
+fdSrc	proxy2.h	20
+flags	proxy2.h	19
+gArgs	cstk.cpp	34
+gLog	cstk.cpp	33
+getEPollFD	netutil.cpp	/^getEPollFD(int epfd, int fd, int events) $/
+getLevel	logentry.h	/^   int getLevel();$/
+getMsg	logentry.h	/^   const char *getMsg();$/
+gettid	runnable.cpp	/^extern "C" pid_t gettid() {$/
+init	proxy2.h	/^   virtual void init();$/
+isActive	proxy2.h	/^   int          isActive()     {return state == PR/
+isClosed	proxy2.h	/^   int          isClosed()     {return state == PR/
+isClosing	proxy2.h	/^   int          isClosing()    {return state == PR/
+isDebug	logentry.h	/^   int isDebug();$/
+isIdle	proxy2.h	/^   int          isIdle()       {return state == PR/
+isInActive	proxy2.h	/^   int          isInActive()   {return state == PR/
+isInputHold	proxy2.h	/^   int          isInputHold()    {return flags & P/
+isOutputHold	proxy2.h	/^   int          isOutputHold()    {return flags & /
+isSiblingClosed	proxy2.h	/^   int          isSiblingClosed()    {return flags/
+mDebug	logentry.h	32
+mLevel	logentry.h	31
+mMsg	logentry.h	30
+markActive	proxy2.h	/^   void         markActive();$/
+markIdle	proxy2.h	/^   void         markIdle();$/
+markInActive	proxy2.h	/^   void         markInActive();$/
+name	args.cpp	30
+nopid	cstk.cpp	41
+openSocket	netutil.cpp	/^openSocket(struct in_addr *addr, in_port_t port, i/
+port	proxy2.h	24
+run	proxy2.h	/^   virtual int  run();$/
+setActive	proxy2.h	/^   void         setActive()    {state = PROXY_STAT/
+setClosed	proxy2.h	/^   void         setClosed()    {state = PROXY_STAT/
+setClosing	proxy2.h	/^   void         setClosing()   {state = PROXY_STAT/
+setIdle	proxy2.h	/^   void         setIdle()      {state = PROXY_STAT/
+setInActive	proxy2.h	/^   void         setInActive()  {state = PROXY_STAT/
+setInputHold	proxy2.h	/^   int          setInputHold()   {flags |= PROXY_D/
+setOutputHold	proxy2.h	/^   int          setOutputHold()   {flags |= PROXY_/
+setSiblingClosed	proxy2.h	/^   int          setSiblingClosed()   {flags |= PRO/
+set_congestion	netutil.cpp	/^set_congestion(int fd, char *c) {$/
+sigTerm	cstk.cpp	42
+sigpipe	cstk.cpp	40
+siptoaddr	netutil.cpp	/^siptoaddr(const char *sip) {$/
+state	proxy2.h	18
+std	args.h	37
+std	logentry.h	26
+std	log.h	34
+std	runnable.h	37
+string	args.h	39
+thread_start_fn_t	runnable.h	43
+write_pid	cstk.cpp	/^write_pid(char *name) {$/
+~LogEntry	logentry.h	/^   virtual ~LogEntry();$/
+~Proxy2	proxy2.h	/^   virtual ~Proxy2();$/

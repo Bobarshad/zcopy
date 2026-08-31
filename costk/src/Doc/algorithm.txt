@@ -1,0 +1,61 @@
+
+Input Side:
+-----------
+
+while (! closed) 
+   wait_for_signal_or_event_or_timeout(TimeoutVal);
+
+   if HUP then
+      closed = NotifyClose();
+      continue;
+
+   if SiblingHUP() then
+      INPUTHOLD = TRUE;
+      shutdown(READ_SIDE of Descriptor)
+      continue;
+
+   if SigUSER1 then
+      INPUTHOLD = FALSE;
+
+   if SigUSER2 then
+      OUTPUTAVL = TRUE;
+
+   INPUTAVL   |= HaveInputEvent();
+   OUTPUTHOLD &= ~HaveOutputEvent();  [ie. clear any HOLD if output event says we are ok]
+
+   if INPUTHOLD == FALSE then
+      while INPUTAVL && !INPUTHOLD
+	 len = read()
+
+	 if (len == 0) then
+	    return buf to pool
+	    INPUTAVL = false
+	 else if (len < 0) then
+	    closed = SignalClose()
+	 else if (len > 0) then
+	    INPUTHOLD = QueueBufOnOutQueue() 
+	    [NOTE: queue routine sends SIGUSER2 
+		   when queuelen is 1]
+
+   if OUTPUTHOLD == FALSE then
+      while OUTPUTAVL && !OUTPUTHOLD
+         buf = queue.getFirst()
+
+         if (buf == NULL) 
+            OUTPUTAVL = FALSE
+            closed = SIBLING_CLOSED
+            break
+
+         len = write(buf)
+         if (len <= 0)
+            if (len == 0 || errno == EAGAIN) then
+               OUTPUTHOLD = true;
+            else 
+               closed = SignalClose()
+         else if (len < buf.length()) {
+            adjustBufferLengths()
+         else 
+            consumeBuffer()
+            
+   if TimedOut() then
+      CheckForInactive();
