@@ -1,0 +1,740 @@
+#!/bin/sh
+
+tag=costk-policy
+state_dir=${COSTK_POLICY_STATE_DIR:-/tmp/costk-policy}
+default_set_name=costk_bad_clients
+default_accelerate_set_name=costk_accelerate_dst
+default_never_proxy_set_name=costk_never_proxy_dst
+
+config_get()
+{
+    local key="$1"
+    local default="$2"
+    local value
+
+    value=$(uci -q get "costk.main.$key")
+    [ -n "$value" ] || value="$default"
+    printf '%s\n' "$value"
+}
+
+load_config()
+{
+    mode=$(config_get mode adaptive)
+    interfaces=$(config_get interfaces "ath0 ath1 ath2")
+    lan_interface=$(config_get lan_interface br-lan)
+    set_name=$(config_get set_name "$default_set_name")
+    destination_mode=$(config_get destination_mode all)
+    accelerate_set_name=$(config_get accelerate_set_name "$default_accelerate_set_name")
+    never_proxy_set_name=$(config_get never_proxy_set_name "$default_never_proxy_set_name")
+    destination_refresh=$(config_get destination_refresh 300)
+    interval=$(config_get interval 1)
+    bad_rssi=$(config_get bad_rssi -72)
+    good_rssi=$(config_get good_rssi -65)
+    select_middle=$(config_get select_middle 0)
+    bad_samples=$(config_get bad_samples 3)
+    good_samples=$(config_get good_samples 10)
+    station_timeout=$(config_get station_timeout 5)
+    initcwnd_enabled=$(config_get initcwnd_enabled 0)
+    initcwnd_excellent_rssi=$(config_get initcwnd_excellent_rssi -55)
+    initcwnd_good_rssi=$(config_get initcwnd_good_rssi -65)
+    initcwnd_fair_rssi=$(config_get initcwnd_fair_rssi -72)
+    initcwnd_excellent=$(config_get initcwnd_excellent 32)
+    initcwnd_good=$(config_get initcwnd_good 20)
+    initcwnd_fair=$(config_get initcwnd_fair 10)
+    initcwnd_poor=$(config_get initcwnd_poor 6)
+    initcwnd_down_samples=$(config_get initcwnd_down_samples 3)
+    initcwnd_up_samples=$(config_get initcwnd_up_samples 10)
+    initcwnd_route_protocol=$(config_get initcwnd_route_protocol 201)
+
+    [ "$interval" -ge 1 ] 2>/dev/null || interval=1
+    [ "$destination_refresh" -ge 5 ] 2>/dev/null || destination_refresh=300
+    [ "$select_middle" = 0 ] || [ "$select_middle" = 1 ] ||
+        select_middle=0
+    [ "$bad_samples" -ge 1 ] 2>/dev/null || bad_samples=1
+    [ "$good_samples" -ge 1 ] 2>/dev/null || good_samples=1
+    [ "$station_timeout" -ge 1 ] 2>/dev/null || station_timeout=5
+    [ "$initcwnd_enabled" = 0 ] || [ "$initcwnd_enabled" = 1 ] ||
+        initcwnd_enabled=0
+    if ! [ "$initcwnd_excellent_rssi" -gt "$initcwnd_good_rssi" ] 2>/dev/null ||
+       ! [ "$initcwnd_good_rssi" -gt "$initcwnd_fair_rssi" ] 2>/dev/null; then
+        initcwnd_excellent_rssi=-55
+        initcwnd_good_rssi=-65
+        initcwnd_fair_rssi=-72
+    fi
+    [ "$initcwnd_excellent" -ge 1 ] 2>/dev/null || initcwnd_excellent=32
+    [ "$initcwnd_good" -ge 1 ] 2>/dev/null || initcwnd_good=20
+    [ "$initcwnd_fair" -ge 1 ] 2>/dev/null || initcwnd_fair=10
+    [ "$initcwnd_poor" -ge 1 ] 2>/dev/null || initcwnd_poor=6
+    [ "$initcwnd_down_samples" -ge 1 ] 2>/dev/null ||
+        initcwnd_down_samples=3
+    [ "$initcwnd_up_samples" -ge 1 ] 2>/dev/null ||
+        initcwnd_up_samples=10
+    if ! [ "$initcwnd_route_protocol" -ge 1 ] 2>/dev/null ||
+       ! [ "$initcwnd_route_protocol" -le 255 ] 2>/dev/null; then
+        initcwnd_route_protocol=201
+    fi
+}
+
+ensure_runtime()
+{
+    mkdir -p "$state_dir"
+    ipset create "$set_name" hash:ip family inet -exist
+    ipset create "$accelerate_set_name" hash:net family inet -exist
+    ipset create "$never_proxy_set_name" hash:net family inet -exist
+    ipset create "${accelerate_set_name}_next" hash:net family inet -exist
+    ipset create "${never_proxy_set_name}_next" hash:net family inet -exist
+}
+
+normalize()
+{
+    printf '%s' "$1" | tr 'A-Z' 'a-z'
+}
+
+is_ipv4()
+{
+    printf '%s\n' "$1" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
+}
+
+config_list_get()
+{
+    uci -q get "costk.main.$1" 2>/dev/null
+}
+
+set_member_count()
+{
+    ipset list "$1" 2>/dev/null | awk '
+        /^Members:/ {
+            members=1
+            next
+        }
+        members && NF {
+            count++
+        }
+        END {
+            print count + 0
+        }
+    '
+}
+
+refresh_destination_set()
+{
+    local target_set="$1"
+    local address_key="$2"
+    local domain_key="$3"
+    local preserve_on_error="$4"
+    local staging_set="${target_set}_next"
+    local entry
+    local domain
+    local resolved
+    local ip
+    local found
+    local had_error=0
+
+    ipset flush "$staging_set" || return 1
+
+    for entry in $(config_list_get "$address_key"); do
+        if ! ipset add "$staging_set" "$entry" -exist; then
+            had_error=1
+        fi
+    done
+
+    for domain in $(config_list_get "$domain_key"); do
+        resolved=$(resolveip -4 -t 5 "$domain" 2>/dev/null)
+        found=0
+        for ip in $resolved; do
+            if is_ipv4 "$ip" &&
+               ipset add "$staging_set" "$ip" -exist; then
+                found=1
+            fi
+        done
+        if [ "$found" -eq 0 ]; then
+            had_error=1
+        fi
+    done
+
+    if [ "$preserve_on_error" -eq 1 ] && [ "$had_error" -ne 0 ]; then
+        ipset flush "$staging_set"
+        return 1
+    fi
+
+    ipset swap "$staging_set" "$target_set" || return 1
+    ipset flush "$staging_set"
+    [ "$had_error" -eq 0 ]
+}
+
+refresh_destinations()
+{
+    local accelerate_error=0
+    local never_proxy_error=0
+    local accelerate_count
+    local never_proxy_count
+
+    load_config
+    ensure_runtime
+
+    refresh_destination_set "$accelerate_set_name" \
+        accelerate_dest accelerate_domain 0 || accelerate_error=1
+    refresh_destination_set "$never_proxy_set_name" \
+        never_proxy_dest never_proxy_domain 1 || never_proxy_error=1
+
+    accelerate_count=$(set_member_count "$accelerate_set_name")
+    never_proxy_count=$(set_member_count "$never_proxy_set_name")
+    logger -t "$tag" \
+        "destination refresh mode=$destination_mode accelerate=$accelerate_count never_proxy=$never_proxy_count"
+
+    if [ "$accelerate_error" -ne 0 ]; then
+        logger -t "$tag" \
+            "one or more accelerate destinations could not be loaded; unresolved entries will bypass costk"
+    fi
+    if [ "$never_proxy_error" -ne 0 ]; then
+        logger -t "$tag" \
+            "one or more never-proxy destinations could not be loaded; preserving the previous never-proxy set"
+    fi
+
+    [ "$never_proxy_error" -eq 0 ] || return 2
+    [ "$accelerate_error" -eq 0 ]
+}
+
+resolve_ip()
+{
+    local target
+    local ip
+
+    target=$(normalize "$1")
+    if is_ipv4 "$target"; then
+        printf '%s\n' "$target"
+        return
+    fi
+
+    ip=$(awk -v mac="$target" '
+        tolower($2) == mac {
+            print $3
+            exit
+        }
+    ' /tmp/dhcp.leases 2>/dev/null)
+
+    if [ -z "$ip" ]; then
+        ip=$(ip neigh show dev "$lan_interface" 2>/dev/null | awk -v mac="$target" '
+            tolower($5) == mac {
+                print $1
+                exit
+            }
+        ')
+    fi
+
+    printf '%s\n' "$ip"
+}
+
+resolve_mac()
+{
+    local target
+    local mac
+
+    target=$(normalize "$1")
+    if ! is_ipv4 "$target"; then
+        printf '%s\n' "$target"
+        return
+    fi
+
+    mac=$(awk -v ip="$target" '
+        $3 == ip {
+            print tolower($2)
+            exit
+        }
+    ' /tmp/dhcp.leases 2>/dev/null)
+
+    if [ -z "$mac" ]; then
+        mac=$(ip neigh show dev "$lan_interface" 2>/dev/null | awk -v ip="$target" '
+            $1 == ip {
+                print tolower($5)
+                exit
+            }
+        ')
+    fi
+
+    printf '%s\n' "$mac"
+}
+
+encoded_target()
+{
+    normalize "$1" | tr ':./' '___'
+}
+
+remove_override()
+{
+    local target
+    local file
+    local saved_target
+    local saved_state
+    local target_ip
+    local target_mac
+    local saved_ip
+    local saved_mac
+
+    target=$(normalize "$1")
+    target_ip=$(resolve_ip "$target")
+    target_mac=$(resolve_mac "$target")
+    for file in "$state_dir"/override.*; do
+        [ -f "$file" ] || continue
+        read -r saved_target saved_state < "$file"
+        saved_ip=$(resolve_ip "$saved_target")
+        saved_mac=$(resolve_mac "$saved_target")
+        if [ "$saved_target" = "$target" ] ||
+           { [ -n "$target_ip" ] && [ "$saved_ip" = "$target_ip" ]; } ||
+           { [ -n "$target_mac" ] && [ "$saved_mac" = "$target_mac" ]; }; then
+            rm -f "$file"
+        fi
+    done
+}
+
+forced_state()
+{
+    local mac="$1"
+    local ip="$2"
+    local file
+    local target
+    local state
+
+    FORCED_STATE=
+    for file in "$state_dir"/override.*; do
+        [ -f "$file" ] || continue
+        read -r target state < "$file"
+        if [ "$target" = "$mac" ] || { [ "$ip" != "-" ] && [ "$target" = "$ip" ]; }; then
+            FORCED_STATE="$state"
+            return
+        fi
+    done
+}
+
+apply_ip_state()
+{
+    local ip="$1"
+    local state="$2"
+
+    [ "$ip" != "-" ] || return
+    if [ "$state" = "bad" ]; then
+        ipset add "$set_name" "$ip" -exist
+    else
+        ipset del "$set_name" "$ip" 2>/dev/null
+    fi
+}
+
+signal_band_for_rssi()
+{
+    local rssi="$1"
+
+    if [ "$rssi" -le "$bad_rssi" ]; then
+        printf '%s\n' bad
+    elif [ "$rssi" -ge "$good_rssi" ]; then
+        printf '%s\n' good
+    else
+        printf '%s\n' middle
+    fi
+}
+
+initcwnd_for_rssi()
+{
+    local rssi="$1"
+
+    if [ "$rssi" -ge "$initcwnd_excellent_rssi" ]; then
+        printf '%s\n' "$initcwnd_excellent"
+    elif [ "$rssi" -ge "$initcwnd_good_rssi" ]; then
+        printf '%s\n' "$initcwnd_good"
+    elif [ "$rssi" -ge "$initcwnd_fair_rssi" ]; then
+        printf '%s\n' "$initcwnd_fair"
+    else
+        printf '%s\n' "$initcwnd_poor"
+    fi
+}
+
+remove_initcwnd_route()
+{
+    local ip="$1"
+
+    [ -n "$ip" ] && [ "$ip" != "-" ] || return
+    ip route del "$ip/32" dev "$lan_interface" \
+        proto "$initcwnd_route_protocol" 2>/dev/null || true
+}
+
+apply_initcwnd_route()
+{
+    local ip="$1"
+    local value="$2"
+    local operation="$3"
+
+    if ! ip route "$operation" "$ip/32" dev "$lan_interface" scope link \
+        proto "$initcwnd_route_protocol" initcwnd "$value"; then
+        logger -t "$tag" \
+            "station_ip=$ip failed to $operation initcwnd=$value route"
+        return 1
+    fi
+}
+
+update_initcwnd_state()
+{
+    local ip="$1"
+    local rssi="$2"
+    local old_ip="$3"
+    local active="$4"
+    local candidate="$5"
+    local candidate_count="$6"
+    local desired
+    local required_samples
+
+    [ -n "$active" ] || active=-
+    [ -n "$candidate" ] || candidate=-
+    [ "$candidate_count" -ge 0 ] 2>/dev/null || candidate_count=0
+
+    if [ "$old_ip" != "-" ] && [ "$old_ip" != "$ip" ]; then
+        remove_initcwnd_route "$old_ip"
+        active=-
+        candidate=-
+        candidate_count=0
+    fi
+
+    if [ "$initcwnd_enabled" -ne 1 ]; then
+        [ "$active" != "-" ] && remove_initcwnd_route "$ip"
+        INITCWND_ACTIVE=-
+        INITCWND_CANDIDATE=-
+        INITCWND_CANDIDATE_COUNT=0
+        return
+    fi
+
+    if [ "$ip" = "-" ]; then
+        INITCWND_ACTIVE=-
+        INITCWND_CANDIDATE=-
+        INITCWND_CANDIDATE_COUNT=0
+        return
+    fi
+
+    desired=$(initcwnd_for_rssi "$rssi")
+    if [ "$active" = "-" ]; then
+        if apply_initcwnd_route "$ip" "$desired" add; then
+            active="$desired"
+            logger -t "$tag" \
+                "station_ip=$ip rssi=$rssi initcwnd=$active initial"
+        fi
+        candidate=-
+        candidate_count=0
+    elif [ "$desired" = "$active" ]; then
+        candidate=-
+        candidate_count=0
+    else
+        if [ "$candidate" = "$desired" ]; then
+            candidate_count=$((candidate_count + 1))
+        else
+            candidate="$desired"
+            candidate_count=1
+        fi
+
+        if [ "$desired" -lt "$active" ]; then
+            required_samples="$initcwnd_down_samples"
+        else
+            required_samples="$initcwnd_up_samples"
+        fi
+
+        if [ "$candidate_count" -ge "$required_samples" ] &&
+           apply_initcwnd_route "$ip" "$desired" replace; then
+            logger -t "$tag" \
+                "station_ip=$ip rssi=$rssi initcwnd=$active->$desired samples=$candidate_count"
+            active="$desired"
+            candidate=-
+            candidate_count=0
+        fi
+    fi
+
+    INITCWND_ACTIVE="$active"
+    INITCWND_CANDIDATE="$candidate"
+    INITCWND_CANDIDATE_COUNT="$candidate_count"
+}
+
+evaluate_station()
+{
+    local mac="$1"
+    local rssi="$2"
+    local iface="$3"
+    local file="$state_dir/station.$(encoded_target "$mac")"
+    local state=good
+    local bad_count=0
+    local good_count=0
+    local old_ip=-
+    local old_iface=-
+    local old_rssi=0
+    local old_initcwnd=-
+    local initcwnd_candidate=-
+    local initcwnd_candidate_count=0
+    local previous_state
+    local signal_band
+    local ip
+    local last_seen=0
+    local now
+
+    if [ -f "$file" ]; then
+        read -r state bad_count good_count old_ip old_iface old_rssi last_seen \
+            old_initcwnd initcwnd_candidate initcwnd_candidate_count < "$file"
+    fi
+    previous_state="$state"
+    signal_band=$(signal_band_for_rssi "$rssi")
+    ip=$(resolve_ip "$mac")
+    [ -n "$ip" ] || ip=-
+
+    if [ "$old_ip" != "-" ] && [ "$old_ip" != "$ip" ]; then
+        ipset del "$set_name" "$old_ip" 2>/dev/null
+    fi
+
+    forced_state "$mac" "$ip"
+    case "$FORCED_STATE" in
+        bad|good)
+            state="$FORCED_STATE"
+            bad_count=0
+            good_count=0
+            ;;
+        *)
+            if [ "$signal_band" = bad ] ||
+               { [ "$signal_band" = middle ] && [ "$select_middle" -eq 1 ]; }; then
+                bad_count=$((bad_count + 1))
+                good_count=0
+                [ "$bad_count" -ge "$bad_samples" ] && state=bad
+            elif [ "$signal_band" = good ]; then
+                good_count=$((good_count + 1))
+                bad_count=0
+                [ "$good_count" -ge "$good_samples" ] && state=good
+            else
+                bad_count=0
+                good_count=0
+            fi
+            ;;
+    esac
+
+    apply_ip_state "$ip" "$state"
+    update_initcwnd_state "$ip" "$rssi" "$old_ip" "$old_initcwnd" \
+        "$initcwnd_candidate" "$initcwnd_candidate_count"
+    now=$(date +%s)
+    printf '%s %s %s %s %s %s %s %s %s %s\n' \
+        "$state" "$bad_count" "$good_count" "$ip" "$iface" "$rssi" "$now" \
+        "$INITCWND_ACTIVE" "$INITCWND_CANDIDATE" \
+        "$INITCWND_CANDIDATE_COUNT" > "$file"
+
+    if [ "$state" != "$previous_state" ]; then
+        logger -t "$tag" \
+            "station=$mac ip=$ip iface=$iface rssi=$rssi band=$signal_band transition=$previous_state->$state"
+    fi
+}
+
+restore_ip_overrides()
+{
+    local file
+    local target
+    local state
+
+    for file in "$state_dir"/override.*; do
+        [ -f "$file" ] || continue
+        read -r target state < "$file"
+        is_ipv4 "$target" && apply_ip_state "$target" "$state"
+    done
+}
+
+scan_once()
+{
+    local stations="$state_dir/stations.$$"
+    local seen="$state_dir/seen.$$"
+    local iface
+    local mac
+    local rssi
+    local file
+    local state
+    local bad_count
+    local good_count
+    local ip
+    local old_iface
+    local old_rssi
+    local last_seen
+    local active_initcwnd
+    local initcwnd_candidate
+    local initcwnd_candidate_count
+    local now
+
+    load_config
+    ensure_runtime
+
+    : > "$stations"
+    : > "$seen"
+    for iface in $interfaces; do
+        wlanconfig "$iface" list sta 2>/dev/null | awk -v iface="$iface" '
+            length($1) == 17 && tolower($1) ~ /^..:..:..:..:..:..$/ && $6 ~ /^-?[0-9]+$/ {
+                print tolower($1), $6, iface
+            }
+        ' >> "$stations"
+    done
+
+    while read -r mac rssi iface; do
+        [ -n "$mac" ] || continue
+        printf '%s\n' "$mac" >> "$seen"
+        evaluate_station "$mac" "$rssi" "$iface"
+    done < "$stations"
+
+    now=$(date +%s)
+    for file in "$state_dir"/station.*; do
+        [ -f "$file" ] || continue
+        mac=${file##*/station.}
+        mac=$(printf '%s' "$mac" | tr '_' ':')
+        if ! grep -qx "$mac" "$seen"; then
+            read -r state bad_count good_count ip old_iface old_rssi last_seen \
+                active_initcwnd initcwnd_candidate \
+                initcwnd_candidate_count < "$file"
+            [ -n "$last_seen" ] || last_seen=0
+            if [ $((now - last_seen)) -ge "$station_timeout" ]; then
+                [ "$ip" != "-" ] && ipset del "$set_name" "$ip" 2>/dev/null
+                remove_initcwnd_route "$ip"
+                rm -f "$file"
+            fi
+        fi
+    done
+
+    restore_ip_overrides
+    rm -f "$stations" "$seen"
+}
+
+force_target()
+{
+    local state="$1"
+    local target
+    local file
+    local ip
+
+    target=$(normalize "$2")
+    [ -n "$target" ] || {
+        echo "missing target IP or MAC" >&2
+        return 2
+    }
+
+    load_config
+    ensure_runtime
+    remove_override "$target"
+    file="$state_dir/override.$(encoded_target "$target")"
+    printf '%s %s\n' "$target" "$state" > "$file"
+
+    ip=$(resolve_ip "$target")
+    [ -n "$ip" ] && apply_ip_state "$ip" "$state"
+    logger -t "$tag" "target=$target ip=${ip:--} forced=$state"
+    scan_once
+}
+
+automatic_target()
+{
+    local target
+    local ip
+
+    target=$(normalize "$1")
+    load_config
+    ensure_runtime
+    remove_override "$target"
+    ip=$(resolve_ip "$target")
+    [ -n "$ip" ] && ipset del "$set_name" "$ip" 2>/dev/null
+    logger -t "$tag" "target=$target returned to automatic policy"
+    scan_once
+}
+
+show_status()
+{
+    local file
+    local mac
+    local state
+    local bad_count
+    local good_count
+    local ip
+    local iface
+    local rssi
+    local last_seen
+    local active_initcwnd
+    local initcwnd_candidate
+    local initcwnd_candidate_count
+    local signal_band
+
+    load_config
+    ensure_runtime
+    echo "mode=$mode destination_mode=$destination_mode interfaces=$interfaces bad_rssi=$bad_rssi good_rssi=$good_rssi select_middle=$select_middle initcwnd_enabled=$initcwnd_enabled"
+    echo "initcwnd_table=poor:<${initcwnd_fair_rssi}:${initcwnd_poor},fair:${initcwnd_fair_rssi}..$((initcwnd_good_rssi - 1)):${initcwnd_fair},good:${initcwnd_good_rssi}..$((initcwnd_excellent_rssi - 1)):${initcwnd_good},excellent:>=${initcwnd_excellent_rssi}:${initcwnd_excellent}"
+    echo "mac ip interface rssi band state bad_count good_count initcwnd candidate candidate_count last_seen"
+    for file in "$state_dir"/station.*; do
+        [ -f "$file" ] || continue
+        mac=${file##*/station.}
+        mac=$(printf '%s' "$mac" | tr '_' ':')
+        read -r state bad_count good_count ip iface rssi last_seen \
+            active_initcwnd initcwnd_candidate \
+            initcwnd_candidate_count < "$file"
+        signal_band=$(signal_band_for_rssi "$rssi")
+        echo "$mac $ip $iface $rssi $signal_band $state $bad_count $good_count ${active_initcwnd:--} ${initcwnd_candidate:--} ${initcwnd_candidate_count:-0} $last_seen"
+    done
+    echo "selected_ips:"
+    ipset list "$set_name" 2>/dev/null | awk '/^Members:/{members=1; next} members && NF{print $1}'
+    echo "accelerate_destinations:"
+    ipset list "$accelerate_set_name" 2>/dev/null | awk '/^Members:/{members=1; next} members && NF{print $1}'
+    echo "never_proxy_destinations:"
+    ipset list "$never_proxy_set_name" 2>/dev/null | awk '/^Members:/{members=1; next} members && NF{print $1}'
+    echo "overrides:"
+    for file in "$state_dir"/override.*; do
+        [ -f "$file" ] || continue
+        cat "$file"
+    done
+}
+
+flush_runtime()
+{
+    local file
+    local state
+    local bad_count
+    local good_count
+    local ip
+    local iface
+    local rssi
+    local last_seen
+    local active_initcwnd
+    local initcwnd_candidate
+    local initcwnd_candidate_count
+
+    load_config
+    ensure_runtime
+    ipset flush "$set_name"
+    for file in "$state_dir"/station.*; do
+        [ -f "$file" ] || continue
+        read -r state bad_count good_count ip iface rssi last_seen \
+            active_initcwnd initcwnd_candidate \
+            initcwnd_candidate_count < "$file"
+        remove_initcwnd_route "$ip"
+    done
+    rm -f "$state_dir"/station.* "$state_dir"/override.* \
+        "$state_dir"/stations.* "$state_dir"/seen.*
+}
+
+run_loop()
+{
+    local last_destination_refresh=0
+    local now
+
+    while :; do
+        load_config
+        now=$(date +%s)
+        if [ $((now - last_destination_refresh)) -ge "$destination_refresh" ]; then
+            refresh_destinations || true
+            last_destination_refresh="$now"
+        fi
+        scan_once
+        sleep "$interval"
+    done
+}
+
+case "${1:-run}" in
+    run) run_loop ;;
+    once) scan_once ;;
+    refresh) refresh_destinations ;;
+    status) show_status ;;
+    force-bad) force_target bad "${2:-}" ;;
+    force-good) force_target good "${2:-}" ;;
+    auto) automatic_target "${2:-}" ;;
+    flush) flush_runtime ;;
+    *)
+        echo "usage: costk-policy {run|once|refresh|status|force-bad <IP|MAC>|force-good <IP|MAC>|auto <IP|MAC>|flush}" >&2
+        exit 2
+        ;;
+esac

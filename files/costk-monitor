@@ -1,0 +1,82 @@
+#!/bin/sh
+
+duration="${1:-65}"
+radio="${2:-ath2}"
+
+case "$duration" in
+    *[!0-9]*|'')
+        echo "usage: costk-monitor [duration-seconds] [wireless-interface]" >&2
+        exit 2
+        ;;
+esac
+
+if [ "$duration" -lt 1 ]; then
+    echo "duration must be at least one second" >&2
+    exit 2
+fi
+
+for command in mpstat pidstat sar
+do
+    if ! command -v "$command" >/dev/null 2>&1; then
+        echo "missing required command: $command" >&2
+        exit 1
+    fi
+done
+
+output="/tmp/costk-test-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$output" || exit 1
+cstk_pids=$(pidof cstk 2>/dev/null | tr ' ' ',')
+
+{
+    date
+    uname -a
+    echo
+    echo "online CPUs: $(cat /sys/devices/system/cpu/online 2>/dev/null)"
+    echo "current frequencies (kHz):"
+    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq
+    do
+        [ -f "$file" ] && printf '%s: %s\n' "$file" "$(cat "$file")"
+    done
+    echo
+    ps w | grep '[c]stk'
+} > "$output/system.txt"
+
+{
+    ethtool eth0 2>/dev/null
+    echo
+    ethtool eth1 2>/dev/null
+} > "$output/ethernet.txt"
+
+wlanconfig "$radio" list sta > "$output/wifi-before.txt" 2>&1
+ip -s link > "$output/interfaces-before.txt" 2>&1
+cat /proc/softirqs > "$output/softirqs-before.txt"
+iptables -t mangle -L PREROUTING -v -n > "$output/iptables-before.txt" 2>&1
+
+mpstat -P ALL 1 "$duration" > "$output/mpstat.txt" &
+mpstat_pid=$!
+pidstat -C cstk -u 1 "$duration" > "$output/pidstat-processes.txt" &
+pidstat_pid=$!
+if [ -n "$cstk_pids" ]; then
+    pidstat -t -p "$cstk_pids" 1 "$duration" > "$output/pidstat-threads.txt" &
+    pidstat_threads_pid=$!
+else
+    echo "costk was not running when monitoring started" > "$output/pidstat-threads.txt"
+    pidstat_threads_pid=
+fi
+sar -n DEV 1 "$duration" > "$output/sar-dev.txt" &
+sar_pid=$!
+
+echo "Monitoring for $duration seconds; start iperf3 now."
+echo "Results: $output"
+
+wait "$mpstat_pid"
+wait "$pidstat_pid"
+[ -z "$pidstat_threads_pid" ] || wait "$pidstat_threads_pid"
+wait "$sar_pid"
+
+wlanconfig "$radio" list sta > "$output/wifi-after.txt" 2>&1
+ip -s link > "$output/interfaces-after.txt" 2>&1
+cat /proc/softirqs > "$output/softirqs-after.txt"
+iptables -t mangle -L PREROUTING -v -n > "$output/iptables-after.txt" 2>&1
+
+echo "Monitoring complete: $output"

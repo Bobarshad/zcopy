@@ -1,0 +1,295 @@
+   0 df -k .
+   1 exit
+   2 uname -a
+   3 cd /etc
+   4 ls
+   5 find ./ -name "cstk" -print
+   6 grep -r cstk *
+   7 pwd
+   8 exit
+   9 uname -a
+  10 df -h
+  11 ls -l /bin/cstk /usr/bin/cstk /etc/init.d/costk
+  12 ls -l /lib/ld-musl-armhf.so.1 /usr/lib/libstdc++.so.6 /lib/libgcc_s.so.1 /usr/lib/libgcc_s.so.1
+  13 cat /proc/sys/net/ipv4/tcp_available_congestion_control
+  14 opkg status kmod-ipt-tproxy
+  15 opkg status iptables-mod-tproxy
+  16 opkg status ip-full
+  17 ls -l /usr/lib/iptables/libxt_socket.so /usr/lib/iptables/libxt_TPROXY.so
+  18 lsmod
+  19 nproc
+  20 command -v iperf3
+  21 cat /sys/devices/system/cpu/online
+  22 ip rule show
+  23 ip route show table 100
+  24 iptables -t mangle -S PREROUTING
+  25 ps w
+  26 uci -q get network.lan.ipaddr
+  27 netstat -lntp
+  28 iptables -t mangle -S
+  29 sha256sum /tmp/cstk-armv7 /tmp/costk.init
+  30 chmod 0755 /tmp/cstk-armv7 /tmp/costk.init
+  31 /tmp/cstk-armv7 --version
+  32 df -h /overlay
+  33 cp /tmp/cstk-armv7 /bin/cstk
+  34 cp /tmp/costk.init /etc/init.d/costk
+  35 chmod 0755 /bin/cstk /etc/init.d/costk
+  36 sync
+  37 ls -l /bin/cstk /etc/init.d/costk
+  38 sha256sum /bin/cstk /etc/init.d/costk
+  39 df -h /overlay
+  40 rm -f /bin/cstk /etc/init.d/costk
+  41 df -i /overlay
+  42 du -h /overlay/upper
+  43 ls -lh /opt/tbox-dev/var/cache/apt/archives
+  44 ls -lh /root/costk/src/cstk /root/costk/files/costk.init
+  45 rm -f /opt/tbox-dev/var/cache/apt/archives/adduser_3.118+deb11u1_all.deb
+  46 df -h /overlay
+  47 cp /tmp/cstk-armv7 /bin/cstk
+  48 cp /tmp/costk.init /etc/init.d/costk
+  49 chmod 0755 /bin/cstk /etc/init.d/costk
+  50 sync
+  51 sha256sum /bin/cstk /etc/init.d/costk
+  52 df -h /overlay
+  53 /etc/init.d/costk start
+  54 ps w
+  55 netstat -lntp
+  56 iptables -t mangle -S PREROUTING
+  57 iptables -t mangle -S CSTK
+  58 ip rule show
+  59 ip route show table 100
+  60 logread -e costk
+  61 WTCP_CCA=cubic /bin/cstk --fg --useSplice 1 --spliceChunk 65536 --logFacility stderr --logLevel 6 8080
+  62 /etc/init.d/costk stop
+  63 iptables -t mangle -S PREROUTING
+  64 ip rule show
+  65 /root/costk/src/cstk --version
+  66 file /root/costk/src/cstk
+  67 command -v gdb
+  68 command -v strace
+  69 mount
+  70 rm -rf /opt/tbox-dev
+  71 sync
+  72 du -h /overlay/upper
+  73 df -h /overlay
+  74 chmod 0755 /tmp/cstk-armv7-fixed
+  75 sha256sum /tmp/cstk-armv7-fixed
+  76 WTCP_CCA=cubic /tmp/cstk-armv7-fixed --fg --useSplice 1 --spliceChunk 65536 --logFacility stderr --logLevel 6 8080
+  77 dmesg | tail -n 30
+  78 ulimit -c
+  79 cat /proc/sys/kernel/core_pattern
+  80 cat /proc/sys/fs/suid_dumpable
+  81 ulimit -c unlimited
+  82 WTCP_CCA=cubic /tmp/cstk-armv7-fixed --fg --useSplice 1 --spliceChunk 65536 --logFacility stderr --logLevel 6 8080
+  83 ls -lh /tmp/*.core
+  84 chmod 0755 /tmp/cstk-armv7-fixed2
+  85 sha256sum /tmp/cstk-armv7-fixed2
+  86 WTCP_CCA=cubic /tmp/cstk-armv7-fixed2 --fg --useSplice 1 --spliceChunk 65536 --logFacility stderr --logLevel 6 8080
+  87 cp /tmp/cstk-armv7-fixed2 /bin/cstk
+  88 chmod 0755 /bin/cstk
+  89 sync
+  90 sha256sum /bin/cstk
+  91 /bin/cstk --version
+  92 /etc/init.d/costk start
+  93 pidof cstk
+  94 netstat -lntp
+  95 iptables -t mangle -S PREROUTING
+  96 iptables -t mangle -S CSTK
+  97 ip rule show
+  98 ip route show table 100
+  99 logread -e cstk
+ 100 /etc/init.d/costk stop
+ 101 pidof cstk
+ 102 iptables -t mangle -S PREROUTING
+ 103 ip rule show
+ 104 ip route show table 100
+ 105 pidof cstk
+ 106 cp /tmp/costk.init-final /etc/init.d/costk
+ 107 chmod 0755 /etc/init.d/costk
+ 108 sync
+ 109 sha256sum /etc/init.d/costk
+ 110 /etc/init.d/costk start
+ 111 pidof cstk
+ 112 /etc/init.d/costk stop
+ 113 pidof cstk
+ 114 iptables -t mangle -S PREROUTING
+ 115 ip rule show
+ 116 /etc/init.d/costk start
+ 117 pidof cstk
+ 118 iptables -t mangle -S PREROUTING
+ 119 ip rule show
+ 120 /etc/init.d/costk enable
+ 121 ls -l /etc/rc.d/*costk
+ 122 pidof cstk
+ 123 netstat -lntp
+ 124 logread -e cstk
+ 125 df -h /overlay
+ 126 file /bin/cstk /etc/init.d/costk
+ 127 ls -l /bin/cstk /etc/init.d/costk
+ 128 sha256sum /bin/cstk /etc/init.d/costk
+ 129 pidof cstk
+ 130 logread -e cstk | tail -n 40
+ 131 logread -e 'MGR(8080)'
+ 132 logread -e 'Premature termination'
+ 133 logread -e 'Disabling splice'
+ 134 iptables -t mangle -L PREROUTING -v -n
+ 135 /etc/init.d/costk stop
+ 136 /etc/init.d/costk start
+ 137 iptables -t mangle -L PREROUTING -v -n
+ 138 logread -e 'MGR(8080)'
+ 139 pidof cstk
+ 140 /etc/init.d/costk stop
+ 141 cp /tmp/costk.init-final /etc/init.d/costk
+ 142 chmod 0755 /etc/init.d/costk
+ 143 sync
+ 144 sha256sum /etc/init.d/costk
+ 145 /etc/init.d/costk start
+ 146 pidof cstk
+ 147 iptables -t mangle -S PREROUTING
+ 148 ls -lh /tmp/cstk*
+ 149 rm -f /tmp/cstk-armv7 /tmp/cstk-armv7-fixed /tmp/cstk-armv7-fixed2 /tmp/cstk-armv7-fixe.1784434066.15208.11.core
+ 150 rm -f /tmp/costk.init /tmp/costk.init-final
+ 151 pidof cstk
+ 152 df -h /overlay
+ 153 /etc/init.d/costk stop
+ 154 cp /tmp/cstk-armv7 /bin/cstk
+ 155 cp /tmp/costk.init /etc/init.d/costk
+ 156 chmod 0755 /bin/cstk /etc/init.d/costk
+ 157 sync
+ 158 sha256sum /bin/cstk /etc/init.d/costk
+ 159 /etc/init.d/costk start
+ 160 pidof cstk
+ 161 netstat -lntp
+ 162 logread -e cstk | tail -n 30
+ 163 nc 127.0.0.1 100
+ 164 nc 127.0.0.1 101
+ 165 ls -l /etc/rc.d/*costk
+ 166 rm -f /tmp/cstk-armv7 /tmp/costk.init
+ 167 pidof cstk
+ 168 df -h /overlay
+ 169 exit
+ 170 ip -br link
+ 171 ip -4 -br address
+ 172 command -v ethtool
+ 173 ethtool eth0
+ 174 ethtool eth1
+ 175 cat /sys/devices/system/cpu/online
+ 176 cat /proc/cpuinfo
+ 177 cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq
+ 178 cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+ 179 cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+ 180 bridge link
+ 181 brctl show
+ 182 pidof cstk
+ 183 taskset -p 16767
+ 184 taskset -p 16768
+ 185 command -v mpstat
+ 186 command -v pidstat
+ 187 command -v sar
+ 188 command -v perf
+ 189 top --help
+ 190 command -v iw
+ 191 iw dev
+ 192 wlanconfig ath0 list sta
+ 193 wlanconfig ath1 list sta
+ 194 wlanconfig ath2 list sta
+ 195 mpstat -V
+ 196 pidstat -V
+ 197 mpstat -P ALL 1 2
+ 198 pidstat -t -C cstk 1 2
+ 199 cat /proc/sys/net/bridge/bridge-nf-call-iptables
+ 200 ethtool -k eth1
+ 201 ethtool -g eth1
+ 202 ethtool -l eth1
+ 203 pidstat -t -p 16768 1 3
+ 204 nc 127.0.0.1 101
+ 205 netstat -ntp
+ 206 ls /proc/16768/task
+ 
+ 207 cat /proc/16768/status
+ 
+ 208 printf '\n=== hot thread ===\n'; cat /proc/16768/task/16830/wchan 2>/dev/null; printf '\n'; cat /proc/16768/task/16830/syscall 2>/dev/null; printf '\n=== kernel stack ===\n'; cat /proc/16768/task/16830/stack 2>/dev/null; printf '\n=== costk stats 101 ===\n'; (printf '\n' | nc 127.0.0.1 101) 2>/dev/null; printf '\n=== session log ===\n'; logread | grep 'session(138)' | tail -20; printf '\n=== cstk sockets ===\n'; netstat -ntp 2>/dev/null | grep cstk | tail -30
+ 
+ 209 printf '\n=== deploy splice fix ===\n'; sha256sum /tmp/cstk.new; /etc/init.d/costk stop; cp /bin/cstk /tmp/cstk.before-splice-fix; cp /tmp/cstk.new /bin/cstk; chmod 0755 /bin/cstk; /etc/init.d/costk start; sleep 2; printf '\n=== processes ===\n'; ps w | grep '[c]stk'; printf '\n=== listeners ===\n'; netstat -lntp 2>/dev/null | grep cstk; printf '\n=== startup errors ===\n'; logread | tail -40 | grep -E 'cstk|costk'
+ 
+ 210 printf '\n=== per-core CPU after fix ===\n'; mpstat -P ALL 1 3; printf '\n=== cstk process CPU after fix ===\n'; pidstat -C cstk -u 1 3
+ 
+ 211 printf '\n=== forwarding verification ===\n'; printf '\n' | nc 127.0.0.1 101; iptables -t mangle -L PREROUTING -v -n | grep -E 'CSTK|TPROXY'; printf '\n=== CPU after HTTPS ===\n'; pidstat -p 17130,17131 1 3
+ 212 rm -f /tmp/mpstat-splice.txt /tmp/pidstat-splice.txt; mpstat -P ALL 1 15 > /tmp/mpstat-splice.txt & pidstat -t -p 17131 1 15 > /tmp/pidstat-splice.txt & echo '15-second monitor started'
+ 
+ 213 sleep 11; printf '\n=== load-test CPU averages ===\n'; grep '^Average:' /tmp/mpstat-splice.txt; printf '\n=== nonzero cstk thread samples ===\n'; awk '$1 ~ /^[0-9][0-9]:/ && $10+0 > 0 {print}' /tmp/pidstat-splice.txt | head -30; printf '\n=== CPU now ===\n'; mpstat -P ALL 1 2
+ 
+ 214 printf '\n=== routing/sysctl capacity ===\n'; sysctl net.ipv4.ip_forward net.core.rmem_max net.core.wmem_max net.ipv4.tcp_rmem net.ipv4.tcp_wmem; printf '\n=== eth1 link ===\n'; ethtool eth1 | grep -E 'Speed:|Duplex:|Auto-negotiation:|Link detected:'; printf '\n=== eth0 link ===\n'; ethtool eth0 | grep -E 'Speed:|Duplex:|Link detected:'; printf '\n=== 6 GHz stations ===\n'; wlanconfig ath2 list sta
+ 
+ 215 cp /tmp/costk-monitor /usr/bin/costk-monitor; chmod 0755 /usr/bin/costk-monitor; sha256sum /usr/bin/costk-monitor; costk-monitor 2 ath2; latest=$(ls -dt /tmp/costk-test-* | head -1); printf '\n=== monitor result files ===\n'; ls -lh "$latest"; printf '\n=== monitor CPU average ===\n'; grep '^Average:' "$latest/mpstat.txt"
+ 
+ 216 printf '\n=== final TBox state ===\n'; sha256sum /bin/cstk /usr/bin/costk-monitor; ps w | grep '[c]stk'; taskset -p $(pidof cstk | awk '{print $1}'); taskset -p $(pidof cstk | awk '{print $2}'); mpstat -P ALL 1 1; exit
+ 
+ 217 printf '\n=== board and network mapping ===\n'; ubus call system board; printf '\n--- /etc/board.json ---\n'; cat /etc/board.json 2>/dev/null; printf '\n--- UCI network ---\n'; uci show network; printf '\n--- eth drivers/device paths ---\n'; ethtool -i eth0; ethtool -i eth1; readlink -f /sys/class/net/eth0/device; readlink -f /sys/class/net/eth1/device; printf '\n--- bridge membership ---\n'; bridge link; printf '\n--- device-tree aliases ---\n'; for f in /sys/firmware/devicetree/base/aliases/ethernet*; do [ -f "$f" ] && printf '%s: ' "$f" && tr '\000' '\n' < "$f"; done; printf '\n--- port-related logs ---\n'; dmesg | grep -Ei 'eth0|eth1|10g|ppe|edma|nss-dp' | tail -80
+ 
+ 218 printf '\n=== ON run 1 setup ===\n'; pidof cstk; iptables -t mangle -L PREROUTING -v -n | grep 'dpt:443'; wlanconfig ath0 list sta | grep -i 'c4:75:ab:c9:17:ce'; costk-monitor 12 ath0 > /tmp/costk-on1-monitor.log 2>&1 & echo 'ON1 monitor started'
+ 
+ 219 printf '\n=== ON run 1 result ===\n'; cat /tmp/costk-on1-monitor.log; d=$(sed -n 's/^Results: //p' /tmp/costk-on1-monitor.log); grep '^Average:' "$d/mpstat.txt"; printf '\n--- interface averages ---\n'; grep '^Average:' "$d/sar-dev.txt" | grep -E 'eth0|ath0|br-lan'; printf '\n--- cstk CPU samples ---\n'; grep ' cstk$' "$d/pidstat-processes.txt" | tail -15; printf '\n--- HTTPS counter after ---\n'; iptables -t mangle -L PREROUTING -v -n | grep 'dpt:443'
+ 
+ 220 printf '\n=== OFF run 1 setup ===\n'; /etc/init.d/costk stop; printf 'cstk pids: '; pidof cstk || true; printf '443 TPROXY rules: '; iptables -t mangle -L PREROUTING -n | grep -c 'dpt:443'; costk-monitor 12 ath0 > /tmp/costk-off1-monitor.log 2>&1 & echo 'OFF1 monitor started'
+ 
+ 221 sleep 10; printf '\n=== OFF run 1 result ===\n'; cat /tmp/costk-off1-monitor.log; d=$(sed -n 's/^Results: //p' /tmp/costk-off1-monitor.log); grep '^Average:' "$d/mpstat.txt"; printf '\n--- interface peak samples ---\n'; awk '$2=="eth0" || $2=="ath0" || $2=="br-lan" {print}' "$d/sar-dev.txt" | head -30
+ 
+ 222 d=$(sed -n 's/^Results: //p' /tmp/costk-on1-monitor.log); printf '\n=== hottest ON worker samples ===\n'; awk '$1 ~ /^[0-9]/ && $10+0 >= 20 {print}' "$d/pidstat-threads.txt" | head -40; printf '\n=== current service state ===\n'; pidof cstk || echo stopped
+ 
+ 223 d=$(sed -n 's/^Results: //p' /tmp/costk-on1-monitor.log); sed -n '1,100p' "$d/pidstat-threads.txt"
+ 
+ 224 printf '\n=== ON run 2 setup ===\n'; /etc/init.d/costk start; sleep 2; p443=$(netstat -lntp 2>/dev/null | awk '$4 ~ /:443$/ && $7 ~ /cstk/ {split($7,a,"/"); print a[1]}'); echo "HTTPS cstk PID=$p443"; iptables -t mangle -L PREROUTING -v -n | grep 'dpt:443'; costk-monitor 75 ath0 > /tmp/costk-on2-monitor.log 2>&1 & pidstat -t -p "$p443" 1 75 > /tmp/costk-on2-threads.txt & echo 'ON2 monitors started'
+ 
+ 225 printf '\n=== ON run 2 immediate result ===\n'; iptables -t mangle -L PREROUTING -v -n | grep 'dpt:443'; printf '\n--- thread samples around transfer ---\n'; tail -120 /tmp/costk-on2-threads.txt; printf '\n--- cstk stats ---\n'; printf '\n' | nc 127.0.0.1 101
+ 
+ 226 printf '\n=== ON2 transfer-window threads ===\n'; grep -E '^22:31:0[3-8]' /tmp/costk-on2-threads.txt | awk '$9+0 > 0 || $0 ~ /Command/ {print}' | head -100
+ 
+ 227 printf '\n=== controlled OFF setup ===\n'; /etc/init.d/costk stop; pidof cstk || echo 'costk stopped'; iptables -t mangle -L PREROUTING -n | grep -c 'dpt:443'
+ 
+ 228 printf '\n=== restore costk enabled ===\n'; /etc/init.d/costk start; sleep 2; ps w | grep '[c]stk'; iptables -t mangle -L PREROUTING -v -n | grep 'dpt:443'; mpstat -P ALL 1 1
+ 
+ 229 cp /tmp/costk-monitor.new /usr/bin/costk-monitor; chmod 0755 /usr/bin/costk-monitor; costk-monitor 2 ath0 > /tmp/costk-monitor-check.log; d=$(sed -n 's/^Results: //p' /tmp/costk-monitor-check.log); printf '\n=== corrected monitor check ===\n'; cat /tmp/costk-monitor-check.log; grep -m 8 '|__' "$d/pidstat-threads.txt"; sha256sum /usr/bin/costk-monitor
+ 
+ 230 printf '\n=== final state ===\n'; printf 'WAN='; uci get network.wan.ifname; printf 'LAN='; uci get network.lan.ifname; ethtool eth1 | grep -E 'Speed:|Link detected:'; ps w | grep '[c]stk'; mpstat -P ALL 1 1; exit
+ 
+ 231 printf '\n=== current baseline configuration ===\n'; cat /proc/sys/fs/pipe-max-size; ps w | grep '[c]stk'; for p in $(pidof cstk); do taskset -p "$p"; done; costk-monitor 15 ath0 > /tmp/costk-parallel-baseline-monitor.log 2>&1 & echo 'baseline monitor started'
+ 232 sleep 5; d=$(sed -n 's/^Results: //p' /tmp/costk-parallel-baseline-monitor.log); printf '\n=== baseline monitor ===\n'; cat /tmp/costk-parallel-baseline-monitor.log; grep '^Average:' "$d/mpstat.txt"; printf '\n--- nonzero process samples ---\n'; awk '$1 ~ /^[0-9]/ && $9+0 > 0 {print}' "$d/pidstat-processes.txt" | head -30; printf '\n--- hottest worker samples ---\n'; awk '$1 ~ /^[0-9]/ && $9+0 >= 10 {print}' "$d/pidstat-threads.txt" | head -40
+ 
+ 233 printf '\n=== splice-on benchmark monitor ===\n'; costk-monitor 45 ath0 > /tmp/costk-splice-on-monitor.log 2>&1 & echo 'splice-on monitor started'; date
+ 
+ 234 costk-monitor 90 ath0 > /tmp/costk-hetzner-splice-on.log 2>&1 & echo '90-second splice-on monitor started'; date
+ 
+ 235 cp /tmp/costk.init.new /etc/init.d/costk; chmod 0755 /etc/init.d/costk; printf '\n=== switch to buffered relay ===\n'; COSTK_USE_SPLICE=0 /etc/init.d/costk restart; sleep 2; ps w | grep '[c]stk'; for p in $(pidof cstk); do taskset -p "$p"; done; costk-monitor 90 ath0 > /tmp/costk-hetzner-buffered.log 2>&1 & echo '90-second buffered monitor started'; date
+ 
+ 236 for mode in splice-on buffered; do log=/tmp/costk-hetzner-$mode.log; d=$(sed -n 's/^Results: //p' "$log"); printf '\n=== %s CPU during active samples ===\n' "$mode"; awk '$1 !~ /Average/ && $10=="cstk" && $8+0>0 {sum+=$8; n++; if ($8>max) max=$8} END {printf "process active-sample avg=%.2f%% max=%.2f%% samples=%d\n", n?sum/n:0,max,n}' "$d/pidstat-processes.txt"; awk '$1 !~ /Average/ && $11 ~ /443/ && $9+0>0 {sum+=$9; n++; if ($9>max) max=$9} END {printf "443 worker avg=%.2f%% max=%.2f%% samples=%d\n", n?sum/n:0,max,n}' "$d/pidstat-threads.txt"; awk '$1 !~ /Average/ && $2=="eth0" && $5+0>1000 {sum+=$5; n++; if ($5>max) max=$5} END {printf "eth0 active rx avg=%.2f kB/s max=%.2f kB/s samples=%d\n", n?sum/n:0,max,n}' "$d/sar-dev.txt"; done
+ 
+ 237 d=$(sed -n 's/^Results: //p' /tmp/costk-hetzner-splice-on.log); printf '\n=== splice hot TIDs ===\n'; awk '$4!="-" && $9+0>0 {sum[$4]+=$9; n[$4]++; if($9>max[$4])max[$4]=$9; name[$4]=$11} END {for(t in sum) printf "%s avg=%.2f max=%.2f n=%d name=%s\n",t,sum[t]/n[t],max[t],n[t],name[t]}' "$d/pidstat-threads.txt" | sort -k2 -nr | head -20; printf '\n=== first sustained hot samples ===\n'; awk '$4!="-" && $9+0>=80 {print}' "$d/pidstat-threads.txt" | head -30; printf '\n=== buffered current state ===\n'; ps w | grep '[c]stk'; mpstat -P ALL 1 1
+ 
+ 238 printf '\n=== deploy corrected splice binary ===\n'; /etc/init.d/costk stop; cp /bin/cstk /tmp/cstk.before-readiness-fix; cp /tmp/cstk.splice-fix /bin/cstk; chmod 0755 /bin/cstk; COSTK_USE_SPLICE=1 /etc/init.d/costk start; sleep 2; sha256sum /bin/cstk; ps w | grep '[c]stk'; mpstat -P ALL 1 2; costk-monitor 90 ath0 > /tmp/costk-hetzner-splice-fixed.log 2>&1 & echo 'fixed-splice monitor started'; date
+ 
+ 239 sleep 5; d=$(sed -n 's/^Results: //p' /tmp/costk-hetzner-splice-fixed.log); printf '\n=== fixed-splice CPU so far ===\n'; awk '$1 !~ /Average/ && $10=="cstk" && $8+0>0 {sum+=$8; n++; if($8>max)max=$8} END {printf "process active-sample avg=%.2f%% max=%.2f%% samples=%d\n",n?sum/n:0,max,n}' "$d/pidstat-processes.txt"; awk '$1 !~ /Average/ && $11 ~ /443/ && $9+0>0 {sum+=$9;n++;if($9>max)max=$9} END {printf "443 worker avg=%.2f%% max=%.2f%% samples=%d\n",n?sum/n:0,max,n}' "$d/pidstat-threads.txt"; printf '\n=== CPU after transfers ===\n'; mpstat -P ALL 1 3; printf '\n=== active sessions ===\n'; printf '\n' | nc 127.0.0.1 101
+ 
+ 240 printf '\n=== direct-path setup ===\n'; /etc/init.d/costk stop; pidof cstk || echo 'costk stopped'; iptables -t mangle -L PREROUTING -n | grep -c 'dpt:443'; costk-monitor 60 ath0 > /tmp/costk-hetzner-direct.log 2>&1 & echo 'direct monitor started'; date
+ 
+ 241 printf '\n=== pre-optimization parallel setup ===\n'; COSTK_USE_SPLICE=1 /etc/init.d/costk start; sleep 2; ps w | grep '[c]stk'; costk-monitor 60 ath0 > /tmp/costk-preopt-parallel.log 2>&1 & echo 'pre-optimization monitor started'; date
+ 
+ 242 printf '\n=== deploy optimized build ===\n'; /etc/init.d/costk stop; cp /tmp/cstk-armv7 /bin/cstk; cp /tmp/costk.init /etc/init.d/costk; chmod 0755 /bin/cstk /etc/init.d/costk; /etc/init.d/costk start; sleep 2; sha256sum /bin/cstk /etc/init.d/costk; ps w | grep '[c]stk'; for p in $(pidof cstk); do taskset -p "$p"; done; mpstat -P ALL 1 2
+ 
+ 243 costk-monitor 45 ath0 > /tmp/costk-optimized-smoke.log 2>&1 & echo 'optimized smoke monitor started'; date
+ 
+ 244 sleep 10; d=$(sed -n 's/^Results: //p' /tmp/costk-optimized-smoke.log); printf '\n=== optimized smoke CPU ===\n'; awk '$1 !~ /Average/ && $10=="cstk" && $8+0>0 {sum+=$8;n++;if($8>max)max=$8} END {printf "process active avg=%.2f%% max=%.2f%% samples=%d\n",n?sum/n:0,max,n}' "$d/pidstat-processes.txt"; awk '$1 !~ /Average/ && $11 ~ /443/ && $9+0>0 {sum+=$9;n++;if($9>max)max=$9} END {printf "443 worker avg=%.2f%% max=%.2f%% samples=%d\n",n?sum/n:0,max,n}' "$d/pidstat-threads.txt"; printf '\n=== CPU after optimized transfer ===\n'; mpstat -P ALL 1 3; printf '\n=== service ===\n'; ps w | grep '[c]stk'; for p in $(pidof cstk); do taskset -p "$p"; done
+ 
+ 245 echo FINAL_AP_CHECK; sha256sum /bin/cstk; ps w | grep '[c]stk'; for p in $(pidof cstk); do printf 'pid=%s affinity=' "$p"; taskset -p "$p"; done; iptables -t mangle -L PREROUTING -v -n | grep -E 'CSTK|dpt:(443|8080|21)'; mpstat 1 2; ps w | grep -E '[m]pstat|[p]idstat|[s]ar|[c]ostk-monitor' || true
+ 
+ 246 ls -l /etc/rc.d/S65costk 2>/dev/null || echo 'costk boot link missing'; logread -e cstk | tail -n 12; exit
+ 
+ 247 ls
+ 248 cd costk/
+ 249 ls
+ 250 cd src/
+ 251 ls -l
+ 252 date
+ 253 cd ..
+ 254 ls
+ 255 history > history.ext

@@ -1,0 +1,45 @@
+#!/bin/sh /etc/rc.common
+
+START=64
+STOP=86
+PROG=/usr/sbin/costk-policy
+PIDFILE=/var/run/costk-policy.pid
+EXTRA_COMMANDS="status"
+EXTRA_HELP="	status	Show station classifications and selected client IPs"
+
+start()
+{
+    stop
+    "$PROG" run >/dev/null 2>&1 &
+    echo $! > "$PIDFILE"
+    sleep 1
+
+    if ! kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+        logger -t costk-policy "policy process failed to start"
+        rm -f "$PIDFILE"
+        return 1
+    fi
+}
+
+stop()
+{
+    local pid
+
+    if [ -s "$PIDFILE" ]; then
+        pid=$(cat "$PIDFILE")
+        kill "$pid" 2>/dev/null
+        wait "$pid" 2>/dev/null
+    fi
+    rm -f "$PIDFILE"
+    "$PROG" flush >/dev/null 2>&1
+}
+
+status()
+{
+    if [ -s "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+        echo "costk-policy is running, pid=$(cat "$PIDFILE")"
+    else
+        echo "costk-policy is stopped"
+    fi
+    "$PROG" status
+}

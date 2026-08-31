@@ -1,0 +1,307 @@
+#!/bin/sh /etc/rc.common
+
+START=65
+STOP=85
+PROG=/bin/cstk
+POLICY_PROG="${COSTK_POLICY_PROG:-/usr/sbin/costk-policy}"
+test_ports="${COSTK_TEST_PORTS:-$(uci -q get costk.main.test_ports 2>/dev/null || true)}"
+ports="8080 443 21${test_ports:+ $test_ports}"
+config_cca="$(uci -q get costk.main.wireless_cca 2>/dev/null || true)"
+config_wired_cca="$(uci -q get costk.main.wired_cca 2>/dev/null || true)"
+config_use_splice="$(uci -q get costk.main.use_splice 2>/dev/null || true)"
+config_splice_chunk="$(uci -q get costk.main.splice_chunk 2>/dev/null || true)"
+config_relay_batch="$(uci -q get costk.main.relay_batch 2>/dev/null || true)"
+config_queue_yield_every="$(uci -q get costk.main.queue_yield_every 2>/dev/null || true)"
+config_relay_stats="$(uci -q get costk.main.relay_stats 2>/dev/null || true)"
+cca="${WTCP_CCA:-${config_cca:-bbr}}"
+wired_cca="${COSTK_WIRED_CCA:-${config_wired_cca:-cubic}}"
+use_splice="${COSTK_USE_SPLICE:-${config_use_splice:-1}}"
+splice_chunk="${COSTK_SPLICE_CHUNK:-${config_splice_chunk:-65536}}"
+relay_batch="${COSTK_RELAY_BATCH:-${config_relay_batch:-200}}"
+queue_yield_every="${COSTK_QUEUE_YIELD_EVERY:-${config_queue_yield_every:-0}}"
+relay_stats="${COSTK_RELAY_STATS:-${config_relay_stats:-0}}"
+cpu_mask="${COSTK_CPU_MASK:-0xf}"
+log_facility="${COSTK_LOG_FACILITY:-daemon}"
+log_level="${COSTK_LOG_LEVEL:-6}"
+module_dir="${COSTK_MODULE_DIR:-/etc/costk/modules}"
+config_mode="$(uci -q get costk.main.mode)"
+policy_mode="${COSTK_POLICY_MODE:-${config_mode:-global}}"
+config_set_name="$(uci -q get costk.main.set_name)"
+policy_set_name="${COSTK_POLICY_SET_NAME:-${config_set_name:-costk_bad_clients}}"
+config_destination_mode="$(uci -q get costk.main.destination_mode)"
+destination_mode="${COSTK_DESTINATION_MODE:-${config_destination_mode:-all}}"
+config_accelerate_set_name="$(uci -q get costk.main.accelerate_set_name)"
+accelerate_set_name="${COSTK_ACCELERATE_SET_NAME:-${config_accelerate_set_name:-costk_accelerate_dst}}"
+config_never_proxy_set_name="$(uci -q get costk.main.never_proxy_set_name)"
+never_proxy_set_name="${COSTK_NEVER_PROXY_SET_NAME:-${config_never_proxy_set_name:-costk_never_proxy_dst}}"
+costk_options="--fg --useSplice $use_splice --spliceChunk $splice_chunk --relayBatch $relay_batch --queueYieldEvery $queue_yield_every --relayStats $relay_stats --logFacility $log_facility --logLevel $log_level"
+
+validate_test_ports() {
+    local port
+
+    for port in $test_ports
+    do
+        case "$port" in
+            *[!0-9]*|'')
+                logger -t costk "invalid test port '$port'"
+                return 1
+                ;;
+        esac
+        if [ "$port" -lt 1 ] || [ "$port" -gt 65535 ]; then
+            logger -t costk "test port out of range: $port"
+            return 1
+        fi
+        case "$port" in
+            21|100|101|102|443|8080)
+                logger -t costk "test port conflicts with a service or statistics port: $port"
+                return 1
+                ;;
+        esac
+    done
+}
+
+cca_available() {
+    local available
+
+    for available in $(cat /proc/sys/net/ipv4/tcp_available_congestion_control)
+    do
+        [ "$available" = "$cca" ] && return 0
+    done
+
+    return 1
+}
+
+load_cca() {
+    local module
+
+    cca_available && return 0
+
+    case "$cca" in
+        westwood) module="tcp_westwood.ko" ;;
+        bbr) module="tcp_bbr.ko" ;;
+        *)
+            logger -t costk "congestion control '$cca' is unavailable"
+            return 1
+            ;;
+    esac
+
+    if [ ! -f "$module_dir/$module" ]; then
+        logger -t costk "CCA module not found: $module_dir/$module"
+        return 1
+    fi
+
+    insmod "$module_dir/$module" >/dev/null 2>&1 || {
+        logger -t costk "failed to load CCA module: $module_dir/$module"
+        return 1
+    }
+
+    if ! cca_available; then
+        logger -t costk "CCA '$cca' is unavailable after loading $module"
+        return 1
+    fi
+}
+
+xt_extension_available() {
+    local name="$1"
+    local proc_file="$2"
+
+    [ -r "$proc_file" ] && grep -qx "$name" "$proc_file"
+}
+
+load_xt_extension() {
+    local name="$1"
+    local proc_file="$2"
+    local module="$3"
+
+    xt_extension_available "$name" "$proc_file" && return 0
+
+    if command -v modprobe >/dev/null 2>&1; then
+        modprobe "${module%.ko}" >/dev/null 2>&1 || true
+    fi
+    if ! xt_extension_available "$name" "$proc_file" &&
+       [ -f "$module_dir/$module" ]; then
+        insmod "$module_dir/$module" >/dev/null 2>&1 || true
+    fi
+    if ! xt_extension_available "$name" "$proc_file"; then
+        logger -t costk "required iptables extension is unavailable: $name"
+        return 1
+    fi
+}
+
+load_transparent_proxy_modules() {
+    load_xt_extension socket /proc/net/ip_tables_matches xt_socket.ko &&
+        load_xt_extension TPROXY /proc/net/ip_tables_targets xt_TPROXY.ko
+}
+
+refresh_destination_policy() {
+    local configured_never_proxy
+    local refresh_result=0
+
+    configured_never_proxy="$(uci -q get costk.main.never_proxy_dest) $(uci -q get costk.main.never_proxy_domain)"
+    if [ ! -x "$POLICY_PROG" ]; then
+        if [ -n "${configured_never_proxy# }" ]; then
+            logger -t costk "never-proxy destinations are configured but $POLICY_PROG is unavailable"
+            return 1
+        fi
+        return 0
+    fi
+
+    "$POLICY_PROG" refresh >/dev/null 2>&1 || refresh_result=$?
+    if [ "$refresh_result" -eq 2 ]; then
+        logger -t costk "never-proxy destination refresh failed; refusing to install interception rules"
+        return 1
+    fi
+    if [ "$refresh_result" -ne 0 ]; then
+        logger -t costk "one or more acceleration destinations are unresolved and will use direct forwarding"
+    fi
+}
+
+stop_processes() {
+    local attempts=0
+
+    killall cstk >/dev/null 2>&1
+    while pidof cstk >/dev/null 2>&1 && [ "$attempts" -lt 5 ]
+    do
+        sleep 1
+        attempts=$((attempts + 1))
+    done
+
+    if pidof cstk >/dev/null 2>&1; then
+        logger -t costk "graceful shutdown timed out; forcing remaining processes to exit"
+        killall -9 cstk >/dev/null 2>&1
+    fi
+}
+
+remove_rules() {
+    local ipaddr
+
+    ipaddr=$(uci_get network.lan.ipaddr)
+
+    while iptables -t mangle -D PREROUTING -p tcp -j CSTK_SELECT >/dev/null 2>&1; do :; done
+    while iptables -t mangle -D PREROUTING -p tcp -m socket -j CSTK >/dev/null 2>&1; do :; done
+
+    if [ -n "$ipaddr" ]; then
+        for port in $ports
+        do
+            while iptables -t mangle -D PREROUTING ! -d "$ipaddr" -p tcp --dport "$port" -j TPROXY --tproxy-mark 0x2/0x2 --on-port "$port" >/dev/null 2>&1; do :; done
+        done
+    fi
+
+    iptables -t mangle -F CSTK_SELECT >/dev/null 2>&1
+    iptables -t mangle -X CSTK_SELECT >/dev/null 2>&1
+    iptables -t mangle -F CSTK >/dev/null 2>&1
+    iptables -t mangle -X CSTK >/dev/null 2>&1
+
+    while ip rule del fwmark 0x2 lookup 100 >/dev/null 2>&1; do :; done
+    ip route flush table 100 >/dev/null 2>&1
+}
+
+start() {
+    local ipaddr
+
+    ipaddr=$(uci_get network.lan.ipaddr)
+    if [ -z "$ipaddr" ]; then
+        logger -t costk "network.lan.ipaddr is empty; refusing to install TPROXY rules"
+        return 1
+    fi
+
+    load_cca || return 1
+    load_transparent_proxy_modules || return 1
+    validate_test_ports || return 1
+
+    stop_processes
+    remove_rules
+
+    case "$policy_mode" in
+        global|adaptive) ;;
+        *)
+            logger -t costk "invalid policy mode '$policy_mode'; expected global or adaptive"
+            return 1
+            ;;
+    esac
+
+    case "$destination_mode" in
+        all|allowlist) ;;
+        *)
+            logger -t costk "invalid destination mode '$destination_mode'; expected all or allowlist"
+            return 1
+            ;;
+    esac
+
+    if [ "$policy_set_name" = "$accelerate_set_name" ] ||
+       [ "$policy_set_name" = "$never_proxy_set_name" ] ||
+       [ "$accelerate_set_name" = "$never_proxy_set_name" ]; then
+        logger -t costk "client, accelerate, and never-proxy ipset names must be different"
+        return 1
+    fi
+
+    refresh_destination_policy || return 1
+
+    ipset create "$policy_set_name" hash:ip family inet -exist || return 1
+    ipset create "$accelerate_set_name" hash:net family inet -exist || return 1
+    ipset create "$never_proxy_set_name" hash:net family inet -exist || return 1
+
+    iptables -t mangle -N CSTK || return 1
+    iptables -t mangle -N CSTK_SELECT || return 1
+    iptables -t mangle -A PREROUTING -p tcp -j CSTK_SELECT || return 1
+    iptables -t mangle -A CSTK_SELECT -p tcp -m socket -j CSTK || return 1
+    iptables -t mangle -A CSTK_SELECT \
+        -m set --match-set "$never_proxy_set_name" dst -j RETURN || return 1
+    iptables -t mangle -A CSTK -j MARK --set-mark 0x2 || return 1
+    iptables -t mangle -A CSTK -j ACCEPT || return 1
+
+    ip rule add fwmark 0x2 lookup 100 || return 1
+    ip route add local 0.0.0.0/0 dev lo table 100 || return 1
+
+    if [ "$policy_mode" = "adaptive" ] &&
+       [ "$destination_mode" = "allowlist" ]; then
+        for port in $ports
+        do
+            iptables -t mangle -A CSTK_SELECT ! -d "$ipaddr" \
+                -p tcp --dport "$port" -m conntrack --ctstate NEW \
+                -m set --match-set "$policy_set_name" src \
+                -m set --match-set "$accelerate_set_name" dst \
+                -j TPROXY --tproxy-mark 0x2/0x2 --on-port "$port" || return 1
+        done
+    elif [ "$policy_mode" = "adaptive" ]; then
+        for port in $ports
+        do
+            iptables -t mangle -A CSTK_SELECT ! -d "$ipaddr" \
+                -p tcp --dport "$port" -m conntrack --ctstate NEW \
+                -m set --match-set "$policy_set_name" src \
+                -j TPROXY --tproxy-mark 0x2/0x2 --on-port "$port" || return 1
+        done
+    elif [ "$destination_mode" = "allowlist" ]; then
+        for port in $ports
+        do
+            iptables -t mangle -A CSTK_SELECT ! -d "$ipaddr" \
+                -p tcp --dport "$port" -m conntrack --ctstate NEW \
+                -m set --match-set "$accelerate_set_name" dst \
+                -j TPROXY --tproxy-mark 0x2/0x2 --on-port "$port" || return 1
+        done
+    else
+        for port in $ports
+        do
+            iptables -t mangle -A CSTK_SELECT ! -d "$ipaddr" \
+                -p tcp --dport "$port" -m conntrack --ctstate NEW \
+                -j TPROXY --tproxy-mark 0x2/0x2 --on-port "$port" || return 1
+        done
+    fi
+
+    [ -f /etc/sysctl.conf ] && sysctl -p -e >&-
+
+    export WTCP_CCA="$cca"
+    export COSTK_WIRED_CCA="$wired_cca"
+    logger -t costk "starting interception policy=$policy_mode destination=$destination_mode client_set=$policy_set_name accelerate_set=$accelerate_set_name never_proxy_set=$never_proxy_set_name"
+    taskset "$cpu_mask" "$PROG" $costk_options --statsPort 100 8080 21 >/dev/null 2>&1 &
+    taskset "$cpu_mask" "$PROG" $costk_options --statsPort 101 443 >/dev/null 2>&1 &
+    if [ -n "$test_ports" ]; then
+        taskset "$cpu_mask" "$PROG" $costk_options --statsPort 102 $test_ports >/dev/null 2>&1 &
+    fi
+}
+
+stop() {
+    stop_processes
+    rm -f /var/run/cstk.pid
+    remove_rules
+}
