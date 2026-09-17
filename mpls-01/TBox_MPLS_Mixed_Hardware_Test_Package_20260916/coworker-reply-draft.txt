@@ -1,0 +1,22 @@
+Subject: Revised MPLS validation proposal — three MPLS TBoxes plus standard TBoxes
+
+Hi,
+
+Thank you for confirming the available hardware. We can proceed with three MPLS-capable TBoxes and one standard TBox, with additional standard units used where helpful. A fourth MPLS-capable unit will not be a prerequisite for this initial validation.
+
+The attached package proposes two main configurations:
+
+1. Three-node MPLS chain: Host L → standard TBox S1 → MPLS TBox A → MPLS TBox B → MPLS TBox D → Host R. S1 forwards ordinary IP traffic without NAT. A, B and D perform MPLS push, swap and pop respectively; the reverse direction is configured independently. This supports forwarding, label/TTL handling, MTU, traffic and resource checks, including interoperability with a standard access TBox.
+
+2. Alternate-path triangle: add a direct A–D link while retaining A–B–D as the primary path. This lets us test recovery through A–D after a primary-link or transit-TBox B failure, with the same ingress and egress. Initial switching will be controlled manually, with loss and interruption measured separately from any later automated GVC repair.
+
+An additional standard TBox can be placed on the other access side. We can also propose a separate transparent-bridge test on the alternate link if the standard firmware supports it and proves that it passes MPLS Ethernet frames unchanged. That would test frame carriage through the standard unit; it would not make that unit an MPLS label-switching node.
+
+The four-MPLS-node chain and original four-MPLS-node diamond remain deferred until another capable unit is available. They will not delay the revised tests above.
+
+Please review the attached topology proposal and let us know the specific scenarios and acceptance criteria you would like to validate. Please also confirm the models/firmware versions, available port map, standard-TBox routing/bridge capabilities, and availability of two traffic hosts and separate management access. A and D each need three isolated data connections for the triangle; B and S1 each need two.
+
+The revised package includes the topology, candidate test matrix, manual configuration examples and the existing offline scripts. The offline suite has 86 passing tests; hardware results will be recorded separately. Once your scenarios and interface details are confirmed, we can finalize the device-specific run sheets.
+
+Best,
+Wulun
