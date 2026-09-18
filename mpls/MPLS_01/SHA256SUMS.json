@@ -1,0 +1,21 @@
+{
+  "OFFLINE_VALIDATION.txt": "1c41e8b82c90e3cba578607ee1c937b6f3b0dc134054866676b31805b8e4d498",
+  "README.txt": "41e133ca7548f04a537d1b231fed9e0e1ce2deae8c82901b42ef5f7045ccfe1b",
+  "RESULTS_TEMPLATE.csv": "302d247cb72ada6560bb9b663a24905b40daf1e83dc36ccfb088560898f53410",
+  "TEST_GUIDE.md": "cfde7a8ebbc013b51e15444fd12f6ad08fc9035415d1152f1309070d60b94fed",
+  "coworker-reply-draft.txt": "f84d3bf4d2dc9145506462a865d770d04db98dd9e72103b356717436423903d9",
+  "routing-gvc/README.md": "cc886d0283717373ccf897ab7eb26526e9e9c3f9cdd229d2c416f7b68e61c148",
+  "routing-gvc/evidence/FIRST_MILESTONE.md": "3cf8ed883e1a13253547584aa942f213f75d5ac705804632e570e349ca906bab",
+  "routing-gvc/evidence/review_probes.py": "25e5f03fae62cff6c1de7808abc91e3722fb115e2fa4cd51070dbb417ef8eb2b",
+  "routing-gvc/gvc_poc/__init__.py": "9278ee8471896543c7f8b1cf680b8a396e36c26cf312e034d73a853d5e747c83",
+  "routing-gvc/gvc_poc/__main__.py": "36e33aad7699645a0d7539b73d40579299c22994c70623bfb1f85483a33357ba",
+  "routing-gvc/gvc_poc/fixtures.py": "204f09cf498cbc8f8aaabdce636f2689408c9063c4cc99fabf1dbf3ee95a22cb",
+  "routing-gvc/gvc_poc/gvc.py": "c88e17d8a6574cc85e67b18d75c9c979c0312d3b710db3a7a181bf5010fce5be",
+  "routing-gvc/gvc_poc/model.py": "ae76dc6e7bffdd19ae07b3802da1dd47301f65d5bd7e58df392610b5d264aff1",
+  "routing-gvc/gvc_poc/routing.py": "6eb02df7bbc97b85db19511feac0104eedcffdd2ec5b558ec6fc67effdfe357c",
+  "routing-gvc/tests/README.md": "44edd6f1148308d423e441f325d99153df9ad72744984e00fc40cc40276a5199",
+  "routing-gvc/tests/__init__.py": "6062a55e1d2cf867352611f4dc3033926483dd6a98001afe1293f73a0a24308c",
+  "routing-gvc/tests/test_cli.py": "4ea75eec22e78e5dfdb5aa15867d1bcc506072eb8b800d8692f545a44ea3a40c",
+  "routing-gvc/tests/test_gvc.py": "a7cf6f4c8a78b96972d0aee4431a16f9bb3ca7d8feed8031f846faded40f16ae",
+  "routing-gvc/tests/test_routing.py": "fcdd218f39239a5163a822b33c019dc097f1f4d0cffde7c6fdcabb0acc27787e"
+}

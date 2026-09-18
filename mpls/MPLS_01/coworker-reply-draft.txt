@@ -1,0 +1,19 @@
+Subject: Four-TBox MPLS lab — equipment request and test scenarios
+
+Thank you for making two MPLS-capable TBoxes available. Please arrange four MPLS-capable TBoxes in total, including two additional units, so we can test transit forwarding and alternate paths on representative TBox hardware.
+
+We will reuse these four units in the following configurations:
+
+1. Two-TBox path: ordinary-IP baseline, MPLS push/pop in both directions, packet captures, missing-label/input-gate checks, MTU/PMTUD, and bounded UDP/TCP load.
+2. Three-TBox chain: ingress push, intermediate label swap and egress pop, including reverse traffic and controlled TTL-expiry tests. Rotate the transit role to check each unit.
+3. Four-TBox chain: repeated label swapping across two transit nodes, bidirectional delivery, MTU and load/resource measurements.
+4. Four-TBox diamond: primary A-B-D and alternate A-C-D, keeping the same ingress A and egress D. Test each path, primary-link failure, transit-TBox failure, restoration and reverse-path operation. Record packet loss, interruption time and surviving-path capacity. Test Babel route learning and withdrawal separately from MPLS path switching.
+
+Please also provide two Linux traffic hosts, suitable data cables and independent power for the TBoxes, plus separate management/recovery access. For the diamond, A and D each need three isolated data connections: one to a traffic host and two to their TBox peers. B and C each need two peer connections. Please send the available port/interface map so we can finalize the run sheets.
+
+Please confirm each unit's model, hardware revision, firmware/SDK and kernel version, whether standard Linux/iproute2 MPLS is supported, and availability of tcpdump, iperf3 and Babel. Return the exact configuration, captures, traffic logs and CPU/memory/drop measurements for each case.
+
+Our offline routing/GVC suite has passed 86 tests. Initial device validation will use static MPLS entries and controlled manual path switching; automated GVC installation and repair remain a later software integration step. We will record those cases separately until the agent is ready. The four-unit lab covers these bench topologies; any longer-chain or site-specific protection test will include its own equipment requirement.
+
+Best,
+Wulun

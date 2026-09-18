@@ -1,0 +1,17 @@
+test_id,scenario,status,device_build,direction,command_or_run_id,expected,observed,evidence_files,notes
+M01,Identity and capability,NOT_RUN,,,,,,,
+M02,Ordinary IPv4 baseline,NOT_RUN,,,,,,,
+M03,A-to-B push/pop,NOT_RUN,,,,,,,
+M04,B-to-A push/pop,NOT_RUN,,,,,,,
+M05,Repeated bidirectional delivery,NOT_RUN,,,,,,,
+M06,Missing/unknown label,NOT_RUN,,,,,,,
+M07,MPLS input gate,NOT_RUN,,,,,,,
+M08,MTU and PMTUD,NOT_RUN,,,,,,,
+M09,Basic load and resources,NOT_RUN,,,,,,,
+M10,Test-link interruption/restoration,NOT_RUN,,,,,,,
+M11,Three-TBox push/swap/pop; rotate transit roles,NOT_RUN,,,,,,,Use three of the four requested TBoxes; finalize port-specific run sheet
+M12,Controlled MPLS TTL expiry,NOT_RUN,,,,,,,Finalize bounded injection method and TTL policy for the installed tools
+M13,Four-TBox chain; two successive swaps,NOT_RUN,,,,,,,Record both directions and complete chain capacity/MTU
+M14,Babel learning and withdrawal,NOT_RUN,,,,,,,Ordinary-IP underlay evidence; does not imply static MPLS repair
+M15,Diamond paths and manual path replacement,NOT_RUN,,,,,,,Distinguish operator switching time from detection and automatic repair
+M16,Automated GVC installation and repair,NOT_RUN,,,,,,,Requires agent/controller implementation; manual switching cannot pass this case
